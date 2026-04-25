@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import { supabase } from "@/lib/supabase/client";
 import { calculateScores } from "@/lib/quiz/scoring";
+import { FunnelHeader } from "@/components/FunnelHeader";
 
 type QuizImage = {
   id: number;
@@ -41,19 +42,10 @@ function preloadImages(urls: string[]) {
 function QuizSkeleton() {
   return (
     <main className="min-h-screen bg-cream flex flex-col">
-      <header className="sticky top-0 z-10 bg-cream border-b border-ink/10 px-6 py-3">
-        <div className="max-w-5xl mx-auto flex items-center justify-between">
-          <img
-            src="/images/styled-my-home-logo.png"
-            alt="Styled My Home"
-            className="h-10 w-auto"
-          />
-          <div className="skeleton h-4 w-24 rounded" />
-        </div>
-        <div className="max-w-5xl mx-auto mt-3">
-          <div className="skeleton h-px w-full rounded-full" />
-        </div>
-      </header>
+      <FunnelHeader
+        rightContent={<div className="skeleton h-4 w-24 rounded" />}
+        bottomContent={<div className="skeleton h-px w-full rounded-full" />}
+      />
       <div className="max-w-5xl mx-auto w-full px-6 pt-8 pb-5">
         <div className="skeleton h-7 w-2/3 rounded mb-2" />
         <div className="skeleton h-4 w-40 rounded" />
@@ -222,7 +214,7 @@ export default function QuizClient() {
           </p>
           <button
             onClick={() => window.location.reload()}
-            className="px-6 py-3 bg-amber text-white rounded-lg text-sm font-medium hover:bg-amber-dark transition-colors"
+            className="px-6 py-3 bg-amber text-white rounded-full text-sm font-medium hover:bg-amber-dark transition-colors"
           >
             Try again
           </button>
@@ -250,26 +242,21 @@ export default function QuizClient() {
   return (
     <main className="min-h-screen bg-cream flex flex-col">
       {/* Sticky header */}
-      <header className="sticky top-0 z-10 bg-cream/95 backdrop-blur-sm border-b border-ink/10">
-        <div className="max-w-5xl mx-auto px-6 py-3 flex items-center justify-between">
-          <img
-            src="/images/styled-my-home-logo.png"
-            alt="Styled My Home"
-            className="h-10 w-auto"
-          />
+      <FunnelHeader
+        rightContent={
           <p className="text-xs font-medium text-stone">
             Question {currentIndex + 1} of {questions.length}
           </p>
-        </div>
-        <div className="max-w-5xl mx-auto px-6 pb-3">
+        }
+        bottomContent={
           <div className="h-px bg-ink/10 rounded-full overflow-hidden">
             <div
               className="h-full bg-amber rounded-full transition-all duration-500 ease-out"
               style={{ width: `${progressPct}%` }}
             />
           </div>
-        </div>
-      </header>
+        }
+      />
 
       {/* Question text */}
       <div

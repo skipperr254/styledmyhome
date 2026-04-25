@@ -181,7 +181,7 @@ export default function ResultsClient({
           </ul>
           <button
             onClick={() => setShowDialog(true)}
-            className="px-7 py-3 rounded-lg border border-amber text-amber hover:bg-amber hover:text-white font-medium text-sm tracking-wide transition-colors duration-200"
+            className="px-7 py-3 rounded-full border border-amber text-amber hover:bg-amber hover:text-white font-medium text-sm tracking-wide transition-colors duration-200"
           >
             Get Complete Guide — $29.99
           </button>
@@ -267,7 +267,7 @@ export default function ResultsClient({
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="you@example.com"
-                className="w-full px-4 py-3 rounded-lg border border-ink/10 text-ink placeholder:text-stone/60 focus:outline-none focus:ring-2 focus:ring-amber transition text-sm"
+                className="w-full px-6 py-3 rounded-full border border-ink/10 text-ink placeholder:text-stone/60 focus:outline-none focus:ring-2 focus:ring-amber transition text-sm"
               />
             </div>
 
@@ -292,7 +292,7 @@ export default function ResultsClient({
               </button>
               <button
                 onClick={() => setShowDialog(false)}
-                className="px-5 py-3 rounded-lg border border-ink/10 text-ink-soft hover:bg-white text-sm transition-colors"
+                className="px-6 py-3 rounded-full border border-ink/10 text-ink-soft hover:bg-ink/5 text-sm transition-colors"
               >
                 Cancel
               </button>
