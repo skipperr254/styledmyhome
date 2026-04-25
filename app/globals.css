@@ -44,6 +44,17 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+@layer base {
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+
+  button:disabled {
+    cursor: not-allowed;
+  }
+}
+
 @layer components {
   .eyebrow {
     @apply text-xs tracking-[0.28em] uppercase text-ink-soft;
