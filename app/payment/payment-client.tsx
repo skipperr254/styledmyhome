@@ -62,30 +62,41 @@ export default function PaymentClient({
   return (
     <main className="min-h-screen bg-brand-cream flex flex-col">
       {/* Header */}
-      <header className="px-8 py-5 border-b border-brand-border">
-        <p className="text-xs font-semibold tracking-[0.2em] uppercase text-brand-accent">
-          Styled My Home
-        </p>
+      <header className="px-8 py-4 border-b border-brand-border">
+        <a href="/" aria-label="Styled My Home — home" className="inline-block">
+          <img src="/images/styled-my-home-logo.png" alt="Styled My Home" className="h-12 w-auto" />
+        </a>
       </header>
 
-      <div className="flex-1 flex flex-col lg:flex-row max-w-6xl mx-auto w-full">
-        {/* Left — hero image */}
-        {heroImageUrl && (
-          <div className="relative h-64 lg:h-auto lg:flex-1 lg:min-h-0">
-            <Image
-              src={heroImageUrl}
-              alt={`${styleName} interior design style`}
-              fill
-              className="object-cover"
-              sizes="(max-width: 1024px) 100vw, 50vw"
-              priority
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-brand-ink/40 via-transparent to-transparent lg:bg-gradient-to-r lg:from-transparent lg:to-brand-cream/30" />
+      {/* Hero image — full-width landscape banner */}
+      {heroImageUrl && (
+        <div className="relative w-full aspect-[16/9] max-h-[420px] overflow-hidden">
+          <Image
+            src={heroImageUrl}
+            alt={`${styleName} interior design style`}
+            fill
+            className="object-cover object-center"
+            sizes="100vw"
+            priority
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-brand-ink/50 via-brand-ink/10 to-transparent" />
+          {/* Style name overlay on the image */}
+          <div className="absolute bottom-6 left-8 right-8">
+            <p className="text-xs font-medium tracking-widest uppercase text-white/70 mb-1">
+              Your result
+            </p>
+            <p className="text-3xl md:text-4xl font-light text-white leading-tight">
+              {displayName ? `${displayName}, you're` : "You're"}
+            </p>
+            <p className="text-3xl md:text-4xl font-semibold text-white/90 leading-tight">
+              {styleName}
+            </p>
           </div>
-        )}
+        </div>
+      )}
 
-        {/* Right — content */}
-        <div className="flex flex-col justify-center px-8 py-12 lg:px-14 lg:py-16 lg:w-[480px] lg:shrink-0">
+      <div className="flex-1 max-w-2xl mx-auto w-full px-8 py-12 lg:px-14 lg:py-16">
+        <div>
           {showCancelledNotice && (
             <div className="mb-6 px-4 py-3 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-800">
               Payment was cancelled. No charge was made — try again whenever you're ready.
@@ -93,17 +104,10 @@ export default function PaymentClient({
           )}
 
           <p className="text-xs font-medium tracking-widest uppercase text-brand-muted mb-3">
-            Your result is ready
+            Your personalized style guide
           </p>
 
-          <h1 className="text-4xl md:text-5xl font-light text-brand-ink leading-tight mb-2">
-            {displayName ? `${displayName}, you're` : "You're"}
-          </h1>
-          <h2 className="text-4xl md:text-5xl font-semibold text-brand-accent leading-tight mb-6">
-            {styleName}
-          </h2>
-
-          <p className="text-brand-stone text-sm leading-relaxed mb-8 max-w-sm">
+          <p className="text-brand-stone text-sm leading-relaxed mb-8 max-w-lg">
             {styleDescription.split(".")[0]}. Unlock your full personalized results
             and PDF style guide below.
           </p>
@@ -128,7 +132,7 @@ export default function PaymentClient({
             <button
               onClick={handleCheckout}
               disabled={loading}
-              className="w-full py-4 px-8 rounded-lg bg-brand-accent hover:bg-brand-accent-dark disabled:opacity-60 text-white font-medium text-sm tracking-wide transition-colors duration-200 flex items-center justify-center gap-2"
+              className="w-full py-4 px-8 rounded-full bg-amber hover:bg-amber-deep disabled:opacity-60 text-ink hover:text-white font-semibold text-xs uppercase tracking-[0.22em] transition-colors duration-200 flex items-center justify-center gap-2"
             >
               {loading ? (
                 <>

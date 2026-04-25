@@ -2,7 +2,8 @@
   "permissions": {
     "allow": [
       "Bash(node *)",
-      "mcp__supabase__apply_migration"
+      "mcp__supabase__apply_migration",
+      "Bash(npx tsc *)"
     ]
   },
   "enableAllProjectMcpServers": true,

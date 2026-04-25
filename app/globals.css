@@ -1,9 +1,23 @@
 @import "tailwindcss";
 
 @theme inline {
-  --font-sans: var(--font-geist-sans);
+  /* Fonts — proxy design system */
+  --font-sans: var(--font-montserrat), ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-playfair), Georgia, "Times New Roman", serif;
+  --font-script: var(--font-dancing), "Playfair Display", cursive;
 
-  /* Brand palette */
+  /* Proxy marketing palette */
+  --color-cream: #f6f5f4;
+  --color-cream-soft: #fafafa;
+  --color-ink: #0f0f10;
+  --color-ink-soft: #2a2a2a;
+  --color-stone: #b7b5af;
+  --color-amber: #e0a85e;
+  --color-amber-deep: #c88f47;
+  --color-sage: #8db5be;
+  --color-sage-deep: #6a9aa4;
+
+  /* Brand palette (quiz / results flow) */
   --color-brand-cream: #faf7f2;
   --color-brand-warm: #f5f0e8;
   --color-brand-accent: #b5895a;
@@ -15,8 +29,8 @@
 }
 
 :root {
-  --background: #faf7f2;
-  --foreground: #2c2318;
+  --background: #f6f5f4;
+  --foreground: #0f0f10;
 }
 
 *,
@@ -32,9 +46,30 @@ html {
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-geist-sans), Georgia, serif;
+  font-family: var(--font-sans);
+  font-size: clamp(1rem, 0.95rem + 0.3vw, 1.125rem);
+  line-height: 1.65;
+  letter-spacing: 0.01em;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+@layer components {
+  .eyebrow {
+    @apply text-xs tracking-[0.28em] uppercase text-ink-soft;
+  }
+
+  .btn-amber {
+    @apply inline-flex items-center justify-center gap-2 rounded-full bg-amber px-7 py-3 text-xs font-semibold uppercase tracking-[0.22em] text-ink transition hover:bg-amber-deep hover:text-white;
+  }
+
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-2 rounded-full border border-ink/20 px-7 py-3 text-xs font-semibold uppercase tracking-[0.22em] text-ink transition hover:bg-ink hover:text-cream;
+  }
+
+  .soft-card {
+    @apply rounded-[2rem] bg-white p-8 shadow-[0_1px_0_rgba(0,0,0,0.04)] ring-1 ring-black/5;
+  }
 }
 
 /* ── Animations ─────────────────────────────────────────────────────────── */

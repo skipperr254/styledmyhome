@@ -41,11 +41,9 @@ function preloadImages(urls: string[]) {
 function QuizSkeleton() {
   return (
     <main className="min-h-screen bg-brand-cream flex flex-col">
-      <header className="sticky top-0 z-10 bg-brand-cream border-b border-brand-border px-6 py-4">
+      <header className="sticky top-0 z-10 bg-brand-cream border-b border-brand-border px-6 py-3">
         <div className="max-w-5xl mx-auto flex items-center justify-between">
-          <p className="text-xs font-semibold tracking-[0.2em] uppercase text-brand-accent">
-            Styled My Home
-          </p>
+          <img src="/images/styled-my-home-logo.png" alt="Styled My Home" className="h-10 w-auto" />
           <div className="skeleton h-4 w-24 rounded" />
         </div>
         <div className="max-w-5xl mx-auto mt-3">
@@ -251,10 +249,8 @@ export default function QuizClient() {
     <main className="min-h-screen bg-brand-cream flex flex-col">
       {/* Sticky header */}
       <header className="sticky top-0 z-10 bg-brand-cream/95 backdrop-blur-sm border-b border-brand-border">
-        <div className="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between">
-          <p className="text-xs font-semibold tracking-[0.2em] uppercase text-brand-accent">
-            Styled My Home
-          </p>
+        <div className="max-w-5xl mx-auto px-6 py-3 flex items-center justify-between">
+          <img src="/images/styled-my-home-logo.png" alt="Styled My Home" className="h-10 w-auto" />
           <p className="text-xs font-medium text-brand-muted">
             Question {currentIndex + 1} of {questions.length}
           </p>

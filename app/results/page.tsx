@@ -142,10 +142,10 @@ export default async function ResultsPage({ searchParams }: Props) {
 
   return (
     <main className="min-h-screen bg-brand-cream">
-      <header className="px-8 py-5 border-b border-brand-border bg-brand-cream sticky top-0 z-10">
-        <p className="text-xs font-semibold tracking-[0.2em] uppercase text-brand-accent">
-          Styled My Home
-        </p>
+      <header className="px-8 py-4 border-b border-brand-border bg-brand-cream sticky top-0 z-10">
+        <a href="/" aria-label="Styled My Home — home" className="inline-block">
+          <img src="/images/styled-my-home-logo.png" alt="Styled My Home" className="h-12 w-auto" />
+        </a>
       </header>
 
       <article className="max-w-3xl mx-auto px-6 py-14 space-y-16 animate-fade-up">

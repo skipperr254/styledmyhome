@@ -136,7 +136,7 @@ export default function ResultsClient({ sessionId, styleName, hasCompletePurchas
         <button
           onClick={handleDownload}
           disabled={downloading}
-          className="px-7 py-3 rounded-lg bg-brand-accent hover:bg-brand-accent-dark disabled:opacity-60 text-white font-medium text-sm tracking-wide transition-colors duration-200 flex items-center gap-2"
+          className="px-7 py-3 rounded-full bg-amber hover:bg-amber-deep disabled:opacity-60 text-ink hover:text-white font-semibold text-xs uppercase tracking-[0.22em] transition-colors duration-200 flex items-center gap-2"
         >
           {downloading ? (
             <>
@@ -194,7 +194,7 @@ export default function ResultsClient({ sessionId, styleName, hasCompletePurchas
           <button
             onClick={handleCompleteDownload}
             disabled={completeDownloading}
-            className="px-7 py-3 rounded-lg bg-brand-accent hover:bg-brand-accent-dark disabled:opacity-60 text-white font-medium text-sm tracking-wide transition-colors duration-200 flex items-center gap-2"
+            className="px-7 py-3 rounded-full bg-amber hover:bg-amber-deep disabled:opacity-60 text-ink hover:text-white font-semibold text-xs uppercase tracking-[0.22em] transition-colors duration-200 flex items-center gap-2"
           >
             {completeDownloading ? (
               <>
@@ -266,7 +266,7 @@ export default function ResultsClient({ sessionId, styleName, hasCompletePurchas
               <button
                 onClick={handleCompleteCheckout}
                 disabled={dialogLoading}
-                className="flex-1 py-3 rounded-lg bg-brand-accent hover:bg-brand-accent-dark disabled:opacity-60 text-white font-medium text-sm tracking-wide transition-colors flex items-center justify-center gap-2"
+                className="flex-1 py-3 rounded-full bg-amber hover:bg-amber-deep disabled:opacity-60 text-ink hover:text-white font-semibold text-xs uppercase tracking-[0.22em] transition-colors flex items-center justify-center gap-2"
               >
                 {dialogLoading ? (
                   <>
