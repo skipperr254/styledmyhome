@@ -30,23 +30,6 @@ function shuffle<T>(arr: T[]): T[] {
   return a;
 }
 
-/**
- * Convert a Supabase public storage URL to a transformed version.
- * Supabase's render/image endpoint resizes + compresses images server-side
- * and caches them on its CDN — dramatically smaller payloads than originals.
- *
- * From: .../storage/v1/object/public/quiz-images/q1/foo.jpg
- * To:   .../storage/v1/render/image/public/quiz-images/q1/foo.jpg?width=600&quality=75
- */
-function quizImageUrl(url: string): string {
-  return (
-    url.replace(
-      "/storage/v1/object/public/",
-      "/storage/v1/render/image/public/",
-    ) + "?width=600&quality=75"
-  );
-}
-
 /** Kick off browser fetches for a list of image URLs so they warm the cache. */
 function preloadImages(urls: string[]) {
   urls.forEach((src) => {
@@ -149,7 +132,7 @@ export default function QuizClient() {
       const idx = currentIndex + offset;
       if (preloadedRef.current.has(idx)) return;
       preloadedRef.current.add(idx);
-      preloadImages(q.images.map((img) => quizImageUrl(img.image_url)));
+      preloadImages(q.images.map((img) => img.image_url));
     });
 
     // Schedule remaining questions at low priority after a short delay
@@ -158,7 +141,7 @@ export default function QuizClient() {
       questions.forEach((q, idx) => {
         if (preloadedRef.current.has(idx)) return;
         preloadedRef.current.add(idx);
-        preloadImages(q.images.map((img) => quizImageUrl(img.image_url)));
+        preloadImages(q.images.map((img) => img.image_url));
       });
     }, 800);
 
@@ -315,7 +298,7 @@ export default function QuizClient() {
               className="group relative aspect-square overflow-hidden rounded-xl cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent focus-visible:ring-offset-2 disabled:cursor-default bg-brand-warm"
             >
               <Image
-                src={quizImageUrl(img.image_url)}
+                src={img.image_url}
                 alt={img.alt_text}
                 fill
                 unoptimized
