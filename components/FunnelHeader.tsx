@@ -21,9 +21,7 @@ export function FunnelHeader({
         {rightContent}
       </div>
       {bottomContent && (
-        <div className="max-w-5xl mx-auto px-6 pb-4">
-          {bottomContent}
-        </div>
+        <div className="max-w-5xl mx-auto px-6 pb-4">{bottomContent}</div>
       )}
     </header>
   );

@@ -50,8 +50,8 @@ export default async function HowItWorksPage({ searchParams }: Props) {
           </h1>
 
           <p className="text-ink-soft mb-14 max-w-md leading-relaxed text-sm md:text-base">
-            This takes approximately 5 minutes. Your results are personalized to your
-            exact choices — no one else will get quite the same result.
+            This takes approximately 5 minutes. Your results are personalized to
+            your exact choices — no one else will get quite the same result.
           </p>
 
           <ol className="space-y-10 mb-16">

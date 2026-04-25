@@ -208,7 +208,9 @@ export default function QuizClient() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-cream">
         <div className="text-center px-6">
-          <p className="text-ink mb-2 font-medium">Couldn&apos;t load the quiz</p>
+          <p className="text-ink mb-2 font-medium">
+            Couldn&apos;t load the quiz
+          </p>
           <p className="text-sm text-ink-soft mb-6">
             Check your connection and try again.
           </p>
