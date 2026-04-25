@@ -1,4 +1,5 @@
 "use client";
+import Link from "next/link";
 
 import { useState } from "react";
 import Image from "next/image";
@@ -60,12 +61,16 @@ export default function PaymentClient({
   }
 
   return (
-    <main className="min-h-screen bg-brand-cream flex flex-col">
+    <main className="min-h-screen bg-cream flex flex-col">
       {/* Header */}
-      <header className="px-8 py-4 border-b border-brand-border">
-        <a href="/" aria-label="Styled My Home — home" className="inline-block">
-          <img src="/images/styled-my-home-logo.png" alt="Styled My Home" className="h-12 w-auto" />
-        </a>
+      <header className="px-8 py-4 border-b border-ink/10">
+        <Link href="/">
+          <img
+            src="/images/styled-my-home-logo.png"
+            alt="Styled My Home"
+            className="h-12 w-auto"
+          />
+        </Link>
       </header>
 
       {/* Hero image — full-width landscape banner */}
@@ -79,16 +84,16 @@ export default function PaymentClient({
             sizes="100vw"
             priority
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-brand-ink/50 via-brand-ink/10 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-ink/50 via-ink/10 to-transparent" />
           {/* Style name overlay on the image */}
           <div className="absolute bottom-6 left-8 right-8">
             <p className="text-xs font-medium tracking-widest uppercase text-white/70 mb-1">
               Your result
             </p>
-            <p className="text-3xl md:text-4xl font-light text-white leading-tight">
-              {displayName ? `${displayName}, you're` : "You're"}
+            <p className="font-serif text-3xl md:text-5xl text-white leading-tight">
+              {displayName ? `${displayName}, you&apos;re` : "You're"}
             </p>
-            <p className="text-3xl md:text-4xl font-semibold text-white/90 leading-tight">
+            <p className="font-serif text-3xl md:text-5xl font-italic text-white/90 leading-tight">
               {styleName}
             </p>
           </div>
@@ -99,28 +104,32 @@ export default function PaymentClient({
         <div>
           {showCancelledNotice && (
             <div className="mb-6 px-4 py-3 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-800">
-              Payment was cancelled. No charge was made — try again whenever you're ready.
+              Payment was cancelled. No charge was made — try again whenever
+              you&apos;re ready.
             </div>
           )}
 
-          <p className="text-xs font-medium tracking-widest uppercase text-brand-muted mb-3">
+          <p className="text-xs font-medium tracking-widest uppercase text-stone mb-3">
             Your personalized style guide
           </p>
 
-          <p className="text-brand-stone text-sm leading-relaxed mb-8 max-w-lg">
-            {styleDescription.split(".")[0]}. Unlock your full personalized results
-            and PDF style guide below.
+          <p className="text-ink-soft text-sm leading-relaxed mb-8 max-w-lg">
+            {styleDescription.split(".")[0]}. Unlock your full personalized
+            results and PDF style guide below.
           </p>
 
-          {/* What's included */}
+          {/* What&apos;s included */}
           <div className="mb-8">
-            <p className="text-xs font-semibold tracking-widest uppercase text-brand-muted mb-4">
-              What's included
+            <p className="text-xs font-semibold tracking-widest uppercase text-stone mb-4">
+              What&apos;s included
             </p>
             <ul className="space-y-2">
               {INCLUDED.map((item) => (
-                <li key={item} className="flex items-start gap-2 text-sm text-brand-stone">
-                  <span className="text-brand-accent mt-0.5 shrink-0">✓</span>
+                <li
+                  key={item}
+                  className="flex items-start gap-2 text-sm text-ink-soft"
+                >
+                  <span className="text-amber mt-0.5 shrink-0">✓</span>
                   {item}
                 </li>
               ))}
@@ -148,7 +157,7 @@ export default function PaymentClient({
               <p className="text-sm text-red-600 text-center">{error}</p>
             )}
 
-            <p className="text-xs text-brand-muted text-center">
+            <p className="text-xs text-stone text-center">
               Secure payment via Stripe &middot; Instant PDF download
             </p>
           </div>

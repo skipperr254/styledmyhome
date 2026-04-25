@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import Image from "next/image";
 import type { Metadata } from "next";
@@ -31,7 +32,7 @@ async function verifyAndRecordPurchase(
   supabase: ReturnType<typeof createServerClient>,
   quizSessionId: string,
   checkoutSessionId: string,
-  purchaseType: "single" | "complete"
+  purchaseType: "single" | "complete",
 ) {
   const { data: existing } = await supabase
     .from("purchases")
@@ -41,7 +42,8 @@ async function verifyAndRecordPurchase(
 
   if (existing) return true;
 
-  const stripeSession = await stripe.checkout.sessions.retrieve(checkoutSessionId);
+  const stripeSession =
+    await stripe.checkout.sessions.retrieve(checkoutSessionId);
   if (stripeSession.payment_status !== "paid") return false;
 
   await supabase.from("purchases").upsert(
@@ -51,13 +53,15 @@ async function verifyAndRecordPurchase(
       purchase_type: purchaseType,
       stripe_checkout_session_id: checkoutSessionId,
     },
-    { onConflict: "stripe_checkout_session_id" }
+    { onConflict: "stripe_checkout_session_id" },
   );
 
   return true;
 }
 
-export async function generateMetadata({ searchParams }: Props): Promise<Metadata> {
+export async function generateMetadata({
+  searchParams,
+}: Props): Promise<Metadata> {
   const { session: sessionId } = await searchParams;
   if (!sessionId) return { title: "Your Results — Styled My Home" };
 
@@ -78,19 +82,33 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
 }
 
 export default async function ResultsPage({ searchParams }: Props) {
-  const { session: sessionId, checkout_session, complete_checkout } = await searchParams;
+  const {
+    session: sessionId,
+    checkout_session,
+    complete_checkout,
+  } = await searchParams;
 
   if (!sessionId) notFound();
 
   const supabase = createServerClient();
 
   if (checkout_session) {
-    const ok = await verifyAndRecordPurchase(supabase, sessionId, checkout_session, "single");
+    const ok = await verifyAndRecordPurchase(
+      supabase,
+      sessionId,
+      checkout_session,
+      "single",
+    );
     if (!ok) redirect(`/payment?session=${sessionId}&cancelled=1`);
   }
 
   if (complete_checkout) {
-    await verifyAndRecordPurchase(supabase, sessionId, complete_checkout, "complete");
+    await verifyAndRecordPurchase(
+      supabase,
+      sessionId,
+      complete_checkout,
+      "complete",
+    );
   }
 
   const { data: purchase } = await supabase
@@ -130,40 +148,54 @@ export default async function ResultsPage({ searchParams }: Props) {
   const topStyleIds = Object.entries(scores)
     .sort(([, a], [, b]) => b - a)
     .slice(0, 3)
-    .map(([id, count]) => ({ id, pct: Math.round((count / totalAnswers) * 100) }));
+    .map(([id, count]) => ({
+      id,
+      pct: Math.round((count / totalAnswers) * 100),
+    }));
 
   const { data: styleNames } = await supabase
     .from("styles")
     .select("id, name")
-    .in("id", topStyleIds.map((s) => s.id));
+    .in(
+      "id",
+      topStyleIds.map((s) => s.id),
+    );
 
-  const nameMap = Object.fromEntries((styleNames ?? []).map((s) => [s.id, s.name]));
-  const topStyles = topStyleIds.map((s) => ({ ...s, name: nameMap[s.id] ?? s.id }));
+  const nameMap = Object.fromEntries(
+    (styleNames ?? []).map((s) => [s.id, s.name]),
+  );
+  const topStyles = topStyleIds.map((s) => ({
+    ...s,
+    name: nameMap[s.id] ?? s.id,
+  }));
 
   return (
-    <main className="min-h-screen bg-brand-cream">
-      <header className="px-8 py-4 border-b border-brand-border bg-brand-cream sticky top-0 z-10">
-        <a href="/" aria-label="Styled My Home — home" className="inline-block">
-          <img src="/images/styled-my-home-logo.png" alt="Styled My Home" className="h-12 w-auto" />
-        </a>
+    <main className="min-h-screen bg-cream">
+      <header className="px-8 py-4 border-b border-ink/10 bg-cream sticky top-0 z-10">
+        <Link href="/">
+          <img
+            src="/images/styled-my-home-logo.png"
+            alt="Styled My Home"
+            className="h-12 w-auto"
+          />
+        </Link>
       </header>
 
       <article className="max-w-3xl mx-auto px-6 py-14 space-y-16 animate-fade-up">
-
         {/* ── Headline ── */}
         <section className="text-center">
-          <p className="text-xs font-medium tracking-widest uppercase text-brand-muted mb-4">
+          <p className="text-xs font-medium tracking-widest uppercase text-stone mb-4">
             Your interior design style
           </p>
           {quizSession.user_name && (
-            <p className="text-2xl font-light text-brand-stone mb-1">
-              {quizSession.user_name}, you're
+            <p className="font-serif text-3xl md:text-4xl text-ink-soft mb-2">
+              {quizSession.user_name}, you&apos;re
             </p>
           )}
-          <h1 className="text-5xl md:text-7xl font-semibold text-brand-accent mb-6 leading-none">
+          <h1 className="font-serif text-5xl md:text-7xl text-amber mb-6 leading-none">
             {style.name}
           </h1>
-          <p className="text-brand-stone leading-relaxed max-w-xl mx-auto">
+          <p className="text-ink-soft leading-relaxed max-w-xl mx-auto">
             {style.description}
           </p>
         </section>
@@ -185,7 +217,7 @@ export default async function ResultsPage({ searchParams }: Props) {
         {/* ── Style History ── */}
         <section>
           <SectionLabel>Style History</SectionLabel>
-          <p className="text-brand-stone leading-relaxed">{style.history}</p>
+          <p className="text-ink-soft leading-relaxed">{style.history}</p>
         </section>
 
         {/* ── Key Characteristics ── */}
@@ -195,7 +227,7 @@ export default async function ResultsPage({ searchParams }: Props) {
             {style.key_characteristics.map((c) => (
               <span
                 key={c}
-                className="px-4 py-2 rounded-full border border-brand-border bg-white text-sm font-medium text-brand-ink shadow-sm"
+                className="px-4 py-2 rounded-full border border-ink/10 bg-white text-sm font-medium text-ink shadow-sm"
               >
                 {c}
               </span>
@@ -208,11 +240,14 @@ export default async function ResultsPage({ searchParams }: Props) {
           <SectionLabel>Design & Décor Tips</SectionLabel>
           <div className="space-y-4">
             {style.design_tips.map((tip, i) => (
-              <div key={i} className="flex gap-4 p-4 rounded-xl bg-white border border-brand-border">
-                <span className="text-brand-accent font-semibold shrink-0 text-sm w-5 mt-0.5">
+              <div
+                key={i}
+                className="flex gap-4 p-4 rounded-xl bg-white border border-ink/10"
+              >
+                <span className="text-amber font-semibold shrink-0 text-sm w-5 mt-0.5">
                   {i + 1}.
                 </span>
-                <p className="text-brand-stone text-sm leading-relaxed">{tip}</p>
+                <p className="text-ink-soft text-sm leading-relaxed">{tip}</p>
               </div>
             ))}
           </div>
@@ -225,7 +260,7 @@ export default async function ResultsPage({ searchParams }: Props) {
             {style.color_palette.map((color) => (
               <span
                 key={color}
-                className="px-4 py-2 rounded-full bg-brand-warm border border-brand-border text-sm text-brand-ink"
+                className="px-4 py-2 rounded-full bg-white border border-ink/10 text-sm text-ink"
               >
                 {color}
               </span>
@@ -239,8 +274,11 @@ export default async function ResultsPage({ searchParams }: Props) {
             <SectionLabel>Metal Finishes</SectionLabel>
             <ul className="space-y-3">
               {style.metal_finishes.map((f) => (
-                <li key={f} className="flex items-center gap-3 text-sm text-brand-stone">
-                  <span className="w-1.5 h-1.5 rounded-full bg-brand-accent shrink-0" />
+                <li
+                  key={f}
+                  className="flex items-center gap-3 text-sm text-ink-soft"
+                >
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber shrink-0" />
                   {f}
                 </li>
               ))}
@@ -250,8 +288,11 @@ export default async function ResultsPage({ searchParams }: Props) {
             <SectionLabel>Wood Finishes</SectionLabel>
             <ul className="space-y-3">
               {style.wood_finishes.map((f) => (
-                <li key={f} className="flex items-center gap-3 text-sm text-brand-stone">
-                  <span className="w-1.5 h-1.5 rounded-full bg-brand-accent shrink-0" />
+                <li
+                  key={f}
+                  className="flex items-center gap-3 text-sm text-ink-soft"
+                >
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber shrink-0" />
                   {f}
                 </li>
               ))}
@@ -262,27 +303,31 @@ export default async function ResultsPage({ searchParams }: Props) {
         {/* ── Style Match Breakdown ── */}
         <section>
           <SectionLabel>Your Style Match Breakdown</SectionLabel>
-          <p className="text-sm text-brand-muted mb-8">
-            Based on your answers, here's how your top styles scored.
+          <p className="text-sm text-stone mb-8">
+            Based on your answers, here&apos;s how your top styles scored.
           </p>
           <div className="space-y-6">
             {topStyles.map((s, i) => (
               <div key={s.id}>
                 <div className="flex justify-between items-baseline text-sm mb-2">
-                  <span className={`font-medium ${i === 0 ? "text-brand-ink" : "text-brand-stone"}`}>
+                  <span
+                    className={`font-medium ${i === 0 ? "text-ink" : "text-ink-soft"}`}
+                  >
                     {s.name}
                     {i === 0 && (
-                      <span className="ml-2 text-xs font-normal text-brand-accent">
+                      <span className="ml-2 text-xs font-normal text-amber">
                         Your dominant style
                       </span>
                     )}
                   </span>
-                  <span className="text-brand-muted font-medium tabular-nums">{s.pct}%</span>
+                  <span className="text-stone font-medium tabular-nums">
+                    {s.pct}%
+                  </span>
                 </div>
-                <div className="h-2 bg-brand-border rounded-full overflow-hidden">
+                <div className="h-2 bg-ink/10 rounded-full overflow-hidden">
                   <div
                     className={`h-full rounded-full transition-all duration-700 ${
-                      i === 0 ? "bg-brand-accent" : "bg-brand-stone/40"
+                      i === 0 ? "bg-amber" : "bg-stone/40"
                     }`}
                     style={{ width: `${s.pct}%` }}
                   />
@@ -305,7 +350,7 @@ export default async function ResultsPage({ searchParams }: Props) {
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
-    <p className="text-xs font-semibold tracking-widest uppercase text-brand-muted mb-5">
+    <p className="text-xs font-semibold tracking-widest uppercase text-stone mb-5">
       {children}
     </p>
   );

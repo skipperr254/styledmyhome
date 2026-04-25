@@ -40,10 +40,14 @@ function preloadImages(urls: string[]) {
 
 function QuizSkeleton() {
   return (
-    <main className="min-h-screen bg-brand-cream flex flex-col">
-      <header className="sticky top-0 z-10 bg-brand-cream border-b border-brand-border px-6 py-3">
+    <main className="min-h-screen bg-cream flex flex-col">
+      <header className="sticky top-0 z-10 bg-cream border-b border-ink/10 px-6 py-3">
         <div className="max-w-5xl mx-auto flex items-center justify-between">
-          <img src="/images/styled-my-home-logo.png" alt="Styled My Home" className="h-10 w-auto" />
+          <img
+            src="/images/styled-my-home-logo.png"
+            alt="Styled My Home"
+            className="h-10 w-auto"
+          />
           <div className="skeleton h-4 w-24 rounded" />
         </div>
         <div className="max-w-5xl mx-auto mt-3">
@@ -161,7 +165,7 @@ export default function QuizClient() {
         }, 150);
       } else {
         setSubmitting(true);
-        const { dominant, scores } = calculateScores(newAnswers);
+        const { dominant } = calculateScores(newAnswers);
 
         try {
           const paidSessionId =
@@ -210,17 +214,15 @@ export default function QuizClient() {
 
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-brand-cream">
+      <div className="min-h-screen flex items-center justify-center bg-cream">
         <div className="text-center px-6">
-          <p className="text-brand-ink mb-2 font-medium">
-            Couldn't load the quiz
-          </p>
-          <p className="text-sm text-brand-stone mb-6">
+          <p className="text-ink mb-2 font-medium">Couldn&apos;t load the quiz</p>
+          <p className="text-sm text-ink-soft mb-6">
             Check your connection and try again.
           </p>
           <button
             onClick={() => window.location.reload()}
-            className="px-6 py-3 bg-brand-accent text-white rounded-lg text-sm font-medium hover:bg-brand-accent-dark transition-colors"
+            className="px-6 py-3 bg-amber text-white rounded-lg text-sm font-medium hover:bg-amber-dark transition-colors"
           >
             Try again
           </button>
@@ -231,10 +233,10 @@ export default function QuizClient() {
 
   if (submitting) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-brand-cream">
+      <div className="min-h-screen flex items-center justify-center bg-cream">
         <div className="text-center">
-          <div className="w-8 h-8 border-2 border-brand-border border-t-brand-accent rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-brand-muted text-sm tracking-widest uppercase">
+          <div className="w-8 h-8 border-2 border-ink/10 border-t-amber rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-stone text-sm tracking-widest uppercase">
             Calculating your style…
           </p>
         </div>
@@ -246,19 +248,23 @@ export default function QuizClient() {
   const progressPct = (currentIndex / questions.length) * 100;
 
   return (
-    <main className="min-h-screen bg-brand-cream flex flex-col">
+    <main className="min-h-screen bg-cream flex flex-col">
       {/* Sticky header */}
-      <header className="sticky top-0 z-10 bg-brand-cream/95 backdrop-blur-sm border-b border-brand-border">
+      <header className="sticky top-0 z-10 bg-cream/95 backdrop-blur-sm border-b border-ink/10">
         <div className="max-w-5xl mx-auto px-6 py-3 flex items-center justify-between">
-          <img src="/images/styled-my-home-logo.png" alt="Styled My Home" className="h-10 w-auto" />
-          <p className="text-xs font-medium text-brand-muted">
+          <img
+            src="/images/styled-my-home-logo.png"
+            alt="Styled My Home"
+            className="h-10 w-auto"
+          />
+          <p className="text-xs font-medium text-stone">
             Question {currentIndex + 1} of {questions.length}
           </p>
         </div>
         <div className="max-w-5xl mx-auto px-6 pb-3">
-          <div className="h-px bg-brand-border rounded-full overflow-hidden">
+          <div className="h-px bg-ink/10 rounded-full overflow-hidden">
             <div
-              className="h-full bg-brand-accent rounded-full transition-all duration-500 ease-out"
+              className="h-full bg-amber rounded-full transition-all duration-500 ease-out"
               style={{ width: `${progressPct}%` }}
             />
           </div>
@@ -271,11 +277,11 @@ export default function QuizClient() {
           transitioning ? "opacity-0" : "opacity-100"
         }`}
       >
-        <h1 className="text-xl md:text-2xl font-light text-brand-ink leading-snug">
+        <h1 className="font-serif text-3xl md:text-[44px] text-ink leading-snug">
           {question.question_text}
         </h1>
-        <p className="text-xs text-brand-muted mt-2">
-          Click the image you're most drawn to
+        <p className="text-xs text-stone mt-2">
+          Click the image you&apos;re most drawn to
         </p>
       </div>
 
@@ -291,7 +297,7 @@ export default function QuizClient() {
               key={img.id}
               onClick={() => handleAnswer(img.style_id)}
               disabled={submitting || transitioning}
-              className="group relative aspect-square overflow-hidden rounded-xl cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent focus-visible:ring-offset-2 disabled:cursor-default bg-brand-warm"
+              className="group relative aspect-square overflow-hidden rounded-xl cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-amber focus-visible:ring-offset-2 disabled:cursor-default bg-white"
             >
               <Image
                 src={img.image_url}
@@ -302,11 +308,11 @@ export default function QuizClient() {
                 className="object-cover transition-transform duration-300 group-hover:scale-[1.04]"
               />
               {/* Letter badge */}
-              <span className="absolute top-2 left-2 w-6 h-6 rounded-full bg-white/85 backdrop-blur-sm flex items-center justify-center text-xs font-semibold text-brand-ink pointer-events-none z-10">
+              <span className="absolute top-2 left-2 w-6 h-6 rounded-full bg-white/85 backdrop-blur-sm flex items-center justify-center text-xs font-semibold text-ink pointer-events-none z-10">
                 {LETTERS[i]}
               </span>
               {/* Hover tint */}
-              <div className="absolute inset-0 bg-brand-accent/0 group-hover:bg-brand-accent/10 transition-colors duration-300 rounded-xl pointer-events-none" />
+              <div className="absolute inset-0 bg-amber/0 group-hover:bg-amber/10 transition-colors duration-300 rounded-xl pointer-events-none" />
             </button>
           ))}
         </div>

@@ -40,7 +40,11 @@ async function triggerDownload(sessionId: string, type: "single" | "complete") {
   URL.revokeObjectURL(objectUrl);
 }
 
-export default function ResultsClient({ sessionId, styleName, hasCompletePurchase }: Props) {
+export default function ResultsClient({
+  sessionId,
+  styleName,
+  hasCompletePurchase,
+}: Props) {
   const router = useRouter();
   const [showDialog, setShowDialog] = useState(false);
   const [email, setEmail] = useState("");
@@ -54,9 +58,11 @@ export default function ResultsClient({ sessionId, styleName, hasCompletePurchas
     // Persist that this session was paid — retakes will use this to skip payment
     localStorage.setItem(PAID_SESSION_KEY, sessionId);
 
-    const count = parseInt(localStorage.getItem(RETAKE_KEY) ?? "1", 10);
-    setRetakeCount(count);
-    if (count < 1) localStorage.setItem(RETAKE_KEY, "1");
+    let count = parseInt(localStorage.getItem(RETAKE_KEY) ?? "1", 10);
+    if (count < 1) {
+      count = 1;
+      localStorage.setItem(RETAKE_KEY, "1");
+    }
   }, [sessionId]);
 
   const handleDownload = useCallback(async () => {
@@ -120,16 +126,16 @@ export default function ResultsClient({ sessionId, styleName, hasCompletePurchas
   const canRetake = retakeCount < MAX_RETAKES;
 
   return (
-    <section className="border-t border-brand-border pt-10 space-y-6">
+    <section className="border-t border-ink/10 pt-10 space-y-6">
       {/* Download single PDF */}
-      <div className="bg-white rounded-2xl p-6 border border-brand-border shadow-sm">
-        <p className="text-xs font-semibold tracking-widest uppercase text-brand-muted mb-2">
+      <div className="bg-white rounded-2xl p-6 border border-ink/10 shadow-sm">
+        <p className="text-xs font-semibold tracking-widest uppercase text-stone mb-2">
           Your Style Guide
         </p>
-        <h3 className="text-lg font-medium text-brand-ink mb-1">
+        <h3 className="font-serif text-2xl text-ink mb-1">
           {styleName} Style Guide — PDF
         </h3>
-        <p className="text-sm text-brand-stone mb-5">
+        <p className="text-sm text-ink-soft mb-5">
           Your personalized guide is ready. Download it now and start designing
           your space with confidence.
         </p>
@@ -151,28 +157,31 @@ export default function ResultsClient({ sessionId, styleName, hasCompletePurchas
 
       {/* Complete guide upsell */}
       {!hasCompletePurchase && (
-        <div className="bg-brand-warm rounded-2xl p-6 border border-brand-border">
-          <p className="text-xs font-semibold tracking-widest uppercase text-brand-muted mb-2">
+        <div className="bg-white rounded-2xl p-6 border border-ink/10">
+          <p className="text-xs font-semibold tracking-widest uppercase text-stone mb-2">
             Want more?
           </p>
-          <h3 className="text-lg font-medium text-brand-ink mb-1">
+          <h3 className="font-serif text-2xl text-ink mb-1">
             Complete Style & Design Guide — $29.99
           </h3>
-          <p className="text-sm text-brand-stone mb-4">
+          <p className="text-sm text-ink-soft mb-4">
             Explore all 8 design styles in depth. Perfect if you scored close
             across multiple styles or want to explore every option.
           </p>
           <ul className="space-y-1.5 mb-5">
             {COMPLETE_FEATURES.map((f) => (
-              <li key={f} className="flex items-start gap-2 text-sm text-brand-stone">
-                <span className="text-brand-accent shrink-0">✓</span>
+              <li
+                key={f}
+                className="flex items-start gap-2 text-sm text-ink-soft"
+              >
+                <span className="text-amber shrink-0">✓</span>
                 {f}
               </li>
             ))}
           </ul>
           <button
             onClick={() => setShowDialog(true)}
-            className="px-7 py-3 rounded-lg border border-brand-accent text-brand-accent hover:bg-brand-accent hover:text-white font-medium text-sm tracking-wide transition-colors duration-200"
+            className="px-7 py-3 rounded-lg border border-amber text-amber hover:bg-amber hover:text-white font-medium text-sm tracking-wide transition-colors duration-200"
           >
             Get Complete Guide — $29.99
           </button>
@@ -181,15 +190,16 @@ export default function ResultsClient({ sessionId, styleName, hasCompletePurchas
 
       {/* Complete guide download (already purchased) */}
       {hasCompletePurchase && (
-        <div className="bg-brand-warm rounded-2xl p-6 border border-brand-border">
-          <p className="text-xs font-semibold tracking-widest uppercase text-brand-muted mb-2">
+        <div className="bg-white rounded-2xl p-6 border border-ink/10">
+          <p className="text-xs font-semibold tracking-widest uppercase text-stone mb-2">
             Complete Guide
           </p>
-          <h3 className="text-lg font-medium text-brand-ink mb-1">
+          <h3 className="text-lg font-medium text-ink mb-1">
             Complete Style & Design Guide
           </h3>
-          <p className="text-sm text-brand-stone mb-5">
-            Thank you for your purchase! Download your complete style guide below.
+          <p className="text-sm text-ink-soft mb-5">
+            Thank you for your purchase! Download your complete style guide
+            below.
           </p>
           <button
             onClick={handleCompleteDownload}
@@ -213,7 +223,7 @@ export default function ResultsClient({ sessionId, styleName, hasCompletePurchas
         <div className="text-center pt-2">
           <button
             onClick={handleRetake}
-            className="text-sm text-brand-muted hover:text-brand-stone underline-offset-2 hover:underline transition-colors"
+            className="text-sm text-stone hover:text-ink-soft underline-offset-2 hover:underline transition-colors"
           >
             Take the quiz again ({MAX_RETAKES - retakeCount} retake
             {MAX_RETAKES - retakeCount !== 1 ? "s" : ""} remaining)
@@ -224,29 +234,32 @@ export default function ResultsClient({ sessionId, styleName, hasCompletePurchas
       {/* Complete guide purchase dialog */}
       {showDialog && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-brand-ink/50 backdrop-blur-sm"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink/50 backdrop-blur-sm"
           onClick={(e) => e.target === e.currentTarget && setShowDialog(false)}
         >
           <div className="bg-white rounded-2xl p-8 w-full max-w-md shadow-xl">
-            <h2 className="text-xl font-medium text-brand-ink mb-1">
+            <h2 className="text-xl font-medium text-ink mb-1">
               Complete Style & Design Guide
             </h2>
-            <p className="text-sm text-brand-stone mb-6">
+            <p className="text-sm text-ink-soft mb-6">
               All 8 design styles in one beautiful PDF. Enter your email for
               your receipt, then complete the secure checkout.
             </p>
 
             <ul className="space-y-1.5 mb-6">
               {COMPLETE_FEATURES.map((f) => (
-                <li key={f} className="flex items-start gap-2 text-sm text-brand-stone">
-                  <span className="text-brand-accent shrink-0">✓</span>
+                <li
+                  key={f}
+                  className="flex items-start gap-2 text-sm text-ink-soft"
+                >
+                  <span className="text-amber shrink-0">✓</span>
                   {f}
                 </li>
               ))}
             </ul>
 
             <div className="mb-4">
-              <label className="block text-xs font-medium tracking-widest uppercase text-brand-muted mb-2">
+              <label className="block text-xs font-medium tracking-widest uppercase text-stone mb-2">
                 Email address
               </label>
               <input
@@ -254,7 +267,7 @@ export default function ResultsClient({ sessionId, styleName, hasCompletePurchas
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="you@example.com"
-                className="w-full px-4 py-3 rounded-lg border border-brand-border text-brand-ink placeholder:text-brand-muted/60 focus:outline-none focus:ring-2 focus:ring-brand-accent transition text-sm"
+                className="w-full px-4 py-3 rounded-lg border border-ink/10 text-ink placeholder:text-stone/60 focus:outline-none focus:ring-2 focus:ring-amber transition text-sm"
               />
             </div>
 
@@ -279,13 +292,13 @@ export default function ResultsClient({ sessionId, styleName, hasCompletePurchas
               </button>
               <button
                 onClick={() => setShowDialog(false)}
-                className="px-5 py-3 rounded-lg border border-brand-border text-brand-stone hover:bg-brand-warm text-sm transition-colors"
+                className="px-5 py-3 rounded-lg border border-ink/10 text-ink-soft hover:bg-white text-sm transition-colors"
               >
                 Cancel
               </button>
             </div>
 
-            <p className="text-xs text-brand-muted text-center mt-4">
+            <p className="text-xs text-stone text-center mt-4">
               Secure payment via Stripe &middot; Instant PDF download
             </p>
           </div>

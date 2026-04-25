@@ -1,4 +1,5 @@
 "use client";
+import Link from "next/link";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -17,27 +18,32 @@ export default function GetStartedPage() {
   }
 
   return (
-    <main className="min-h-screen bg-brand-cream flex flex-col items-center justify-center px-6 py-16">
+    <main className="min-h-screen bg-cream flex flex-col items-center justify-center px-6 py-16">
       <div className="w-full max-w-md stagger-children">
         {/* Logo */}
-        <a href="/" aria-label="Styled My Home — home" className="inline-block mb-10">
-          <img src="/images/styled-my-home-logo.png" alt="Styled My Home" className="h-14 w-auto" />
-        </a>
+        <Link href="/">
+          <img
+            src="/images/styled-my-home-logo.png"
+            alt="Styled My Home"
+            className="h-14 w-auto"
+          />
+        </Link>
 
-        <h1 className="font-sans text-4xl md:text-5xl font-light leading-tight text-brand-ink mb-4">
+        <h1 className="font-sans text-4xl md:text-5xl font-light leading-tight text-ink mb-4">
           Discover your interior design style.
         </h1>
 
-        <p className="text-base leading-relaxed text-brand-stone mb-12 max-w-sm">
-          Answer 11 visual questions and we&rsquo;ll reveal the design aesthetic that
-          speaks to you — with a personalized guide to help you bring it home.
+        <p className="text-base leading-relaxed text-ink-soft mb-12 max-w-sm">
+          Answer 11 visual questions and we&rsquo;ll reveal the design aesthetic
+          that speaks to you — with a personalized guide to help you bring it
+          home.
         </p>
 
         {/* Name input */}
         <div className="mb-6">
           <label
             htmlFor="name"
-            className="block text-xs font-medium tracking-widest uppercase mb-2 text-brand-muted"
+            className="block text-xs font-medium tracking-widest uppercase mb-2 text-stone"
           >
             Your first name (optional)
           </label>
@@ -49,7 +55,7 @@ export default function GetStartedPage() {
             onKeyDown={handleKeyDown}
             placeholder="e.g. Sarah"
             maxLength={50}
-            className="w-full px-4 py-3 rounded-lg border border-brand-border bg-white text-brand-ink placeholder:text-brand-muted/60 focus:outline-none focus:ring-2 focus:ring-brand-accent transition"
+            className="w-full px-4 py-3 rounded-lg border border-ink/10 bg-white text-ink placeholder:text-stone/60 focus:outline-none focus:ring-2 focus:ring-amber transition"
           />
         </div>
 
@@ -60,7 +66,7 @@ export default function GetStartedPage() {
           Let&rsquo;s Begin
         </button>
 
-        <p className="mt-6 text-xs text-brand-muted">
+        <p className="mt-6 text-xs text-stone">
           Takes about 5 minutes &middot; No account needed
         </p>
       </div>

@@ -5,8 +5,8 @@ export default function QuizPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen flex items-center justify-center bg-brand-cream">
-          <p className="text-brand-muted text-sm tracking-widest uppercase animate-pulse">
+        <div className="min-h-screen flex items-center justify-center bg-cream">
+          <p className="text-stone text-sm tracking-widest uppercase animate-pulse">
             Preparing your quiz…
           </p>
         </div>

@@ -35,24 +35,24 @@ export default async function HowItWorksPage({ searchParams }: Props) {
   const quizHref = name ? `/quiz?name=${encodeURIComponent(name)}` : "/quiz";
 
   return (
-    <main className="min-h-screen bg-brand-cream flex flex-col">
-      <header className="px-8 py-4 border-b border-brand-border">
-        <a href="/" aria-label="Styled My Home — home" className="inline-block">
+    <main className="min-h-screen bg-cream flex flex-col">
+      <header className="px-8 py-4 border-b border-ink/10">
+        <Link href="/">
           <img src="/images/styled-my-home-logo.png" alt="Styled My Home" className="h-12 w-auto" />
-        </a>
+        </Link>
       </header>
 
       <div className="flex-1 flex flex-col items-center justify-center px-8 py-16">
         <div className="w-full max-w-2xl stagger-children">
-          <p className="text-xs font-medium tracking-widest uppercase text-brand-muted mb-4">
+          <p className="text-xs font-medium tracking-widest uppercase text-stone mb-4">
             Here&rsquo;s how it works
           </p>
 
-          <h1 className="font-sans text-3xl md:text-4xl font-light text-brand-ink mb-4 leading-snug">
+          <h1 className="font-sans text-3xl md:text-4xl font-light text-ink mb-4 leading-snug">
             {name ? `Ready, ${name}?` : "Ready to find your style?"}
           </h1>
 
-          <p className="text-brand-stone mb-14 max-w-md leading-relaxed text-sm md:text-base">
+          <p className="text-ink-soft mb-14 max-w-md leading-relaxed text-sm md:text-base">
             This takes approximately 5 minutes. Your results are personalized to your
             exact choices — no one else will get quite the same result.
           </p>
@@ -60,14 +60,14 @@ export default async function HowItWorksPage({ searchParams }: Props) {
           <ol className="space-y-10 mb-16">
             {STEPS.map((step) => (
               <li key={step.number} className="flex gap-6">
-                <span className="font-sans text-3xl font-light text-brand-accent shrink-0 w-10 leading-none">
+                <span className="font-sans text-3xl font-light text-amber shrink-0 w-10 leading-none">
                   {step.number}
                 </span>
                 <div>
-                  <h2 className="font-sans font-medium text-brand-ink mb-1 text-sm md:text-base">
+                  <h2 className="font-sans font-medium text-ink mb-1 text-sm md:text-base">
                     {step.title}
                   </h2>
-                  <p className="text-sm text-brand-stone leading-relaxed">
+                  <p className="text-sm text-ink-soft leading-relaxed">
                     {step.description}
                   </p>
                 </div>
@@ -82,7 +82,7 @@ export default async function HowItWorksPage({ searchParams }: Props) {
             Start Quiz
           </Link>
 
-          <p className="mt-6 text-xs text-brand-muted">
+          <p className="mt-6 text-xs text-stone">
             11 questions &middot; Visual answers only &middot; Instant results
           </p>
         </div>

@@ -16,16 +16,6 @@
   --color-amber-deep: #c88f47;
   --color-sage: #8db5be;
   --color-sage-deep: #6a9aa4;
-
-  /* Brand palette (quiz / results flow) */
-  --color-brand-cream: #faf7f2;
-  --color-brand-warm: #f5f0e8;
-  --color-brand-accent: #b5895a;
-  --color-brand-accent-dark: #8f6a3f;
-  --color-brand-stone: #6b5c4e;
-  --color-brand-ink: #2c2318;
-  --color-brand-muted: #9c8f84;
-  --color-brand-border: #e8e0d5;
 }
 
 :root {
