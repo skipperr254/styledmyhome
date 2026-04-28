@@ -137,7 +137,7 @@ async function sendPurchaseEmail({
     });
 
     const { error: emailError } = await resend.emails.send({
-      from: process.env.RESEND_FROM_EMAIL ?? "hello@styledmyhome.com",
+      from: process.env.RESEND_FROM_EMAIL!,
       to: customerEmail,
       subject,
       html,

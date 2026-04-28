@@ -105,7 +105,7 @@ export async function POST(req: NextRequest) {
 
   // Send welcome email regardless (idempotent — Resend deduplicates on their end)
   const { error: emailError } = await resend.emails.send({
-    from: process.env.RESEND_FROM_EMAIL ?? "hello@styledmyhome.com",
+    from: process.env.RESEND_FROM_EMAIL!,
     to: normalised,
     subject: "Your free Home Measurement Guide is here 🎉",
     html: buildWelcomeEmail(GUIDE_URL),
