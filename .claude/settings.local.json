@@ -3,7 +3,9 @@
     "allow": [
       "Bash(node *)",
       "mcp__supabase__apply_migration",
-      "Bash(npx tsc *)"
+      "Bash(npx tsc *)",
+      "Bash(npx tsx *)",
+      "Bash(npm install *)"
     ]
   },
   "enableAllProjectMcpServers": true,

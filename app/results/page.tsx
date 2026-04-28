@@ -303,16 +303,14 @@ export default async function ResultsPage({ searchParams }: Props) {
         {/* ── Style Match Breakdown ── */}
         <section>
           <SectionLabel>Your Style Match Breakdown</SectionLabel>
-          <p className="text-sm text-stone mb-8">
+          <p className="text-sm text-stone mb-6">
             Based on your answers, here&apos;s how your top styles scored.
           </p>
-          <div className="space-y-6">
+          <div className="bg-white rounded-2xl border border-ink/10 shadow-sm px-6 py-6 space-y-6">
             {topStyles.map((s, i) => (
               <div key={s.id}>
                 <div className="flex justify-between items-baseline text-sm mb-2">
-                  <span
-                    className={`font-medium ${i === 0 ? "text-ink" : "text-ink-soft"}`}
-                  >
+                  <span className={`font-medium ${i === 0 ? "text-ink" : "text-ink-soft"}`}>
                     {s.name}
                     {i === 0 && (
                       <span className="ml-2 text-xs font-normal text-amber">
@@ -320,15 +318,11 @@ export default async function ResultsPage({ searchParams }: Props) {
                       </span>
                     )}
                   </span>
-                  <span className="text-stone font-medium tabular-nums">
-                    {s.pct}%
-                  </span>
+                  <span className="text-stone font-medium tabular-nums">{s.pct}%</span>
                 </div>
                 <div className="h-2 bg-ink/10 rounded-full overflow-hidden">
                   <div
-                    className={`h-full rounded-full transition-all duration-700 ${
-                      i === 0 ? "bg-amber" : "bg-stone/40"
-                    }`}
+                    className={`h-full rounded-full transition-all duration-700 ${i === 0 ? "bg-amber" : "bg-stone/40"}`}
                     style={{ width: `${s.pct}%` }}
                   />
                 </div>
@@ -342,6 +336,8 @@ export default async function ResultsPage({ searchParams }: Props) {
           sessionId={sessionId}
           styleName={style.name}
           hasCompletePurchase={!!completePurchase}
+          justPurchasedSingle={!!checkout_session}
+          justPurchasedComplete={!!complete_checkout}
         />
       </article>
     </main>
@@ -350,7 +346,7 @@ export default async function ResultsPage({ searchParams }: Props) {
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
-    <p className="text-xs font-semibold tracking-widest uppercase text-stone mb-5">
+    <p className="text-xs font-bold tracking-widest uppercase text-ink mb-5">
       {children}
     </p>
   );

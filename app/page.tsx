@@ -132,8 +132,8 @@ export default function HomePage() {
             Uncover the interior style that feels like home
           </h2>
           <p className="mx-auto mt-6 max-w-xl text-sm text-ink-soft md:text-base">
-            Take our visual design quiz and receive your personalized PDF style guide —
-            complete with color palettes, finishes, and expert tips.
+            Take our visual design quiz and receive your personalized PDF style
+            guide — complete with color palettes, finishes, and expert tips.
           </p>
           <Link href="/get-started" className="btn-amber mt-10">
             Discover your style →
@@ -150,7 +150,8 @@ export default function HomePage() {
               Everything you need to style your home
             </h2>
             <p className="mx-auto mt-5 max-w-xl text-sm text-ink-soft md:text-base">
-              Powerful design tools that make creating your dream space effortless.
+              Powerful design tools that make creating your dream space
+              effortless.
             </p>
           </div>
 
@@ -160,7 +161,9 @@ export default function HomePage() {
                 <h3 className="font-sans text-sm font-semibold uppercase tracking-[0.18em] text-ink">
                   {f.title}
                 </h3>
-                <p className="mt-4 text-sm leading-relaxed text-ink-soft">{f.body}</p>
+                <p className="mt-4 text-sm leading-relaxed text-ink-soft">
+                  {f.body}
+                </p>
               </article>
             ))}
           </div>
@@ -176,40 +179,49 @@ export default function HomePage() {
               Discover your signature style
             </h2>
             <p className="mx-auto mt-5 max-w-2xl text-sm text-ink-soft md:text-base">
-              Stop guessing. Our visual design quiz analyzes your instinctive room
-              preferences to reveal the interior style that truly feels like home —
-              complete with a personalized style report you can download and share.
+              Stop guessing. Our visual design quiz analyzes your instinctive
+              room preferences to reveal the interior style that truly feels
+              like home — complete with a personalized style report you can
+              download and share.
             </p>
           </div>
 
           <div className="mt-16 grid gap-16 md:grid-cols-2 md:gap-20">
             <ul className="space-y-10 text-center text-sm tracking-[0.15em] text-ink md:text-[13px]">
               <li>
-                <p className="font-semibold uppercase">Visual Room-by-Room Quiz</p>
+                <p className="font-semibold uppercase">
+                  Visual Room-by-Room Quiz
+                </p>
                 <p className="mt-3 uppercase text-ink-soft">
-                  Choose from beautifully curated room images — kitchens, bedrooms,
-                  living rooms, and more.
+                  Choose from beautifully curated room images — kitchens,
+                  bedrooms, living rooms, and more.
                 </p>
               </li>
               <li>
-                <p className="font-semibold uppercase">Personalized Style Report</p>
+                <p className="font-semibold uppercase">
+                  Personalized Style Report
+                </p>
                 <p className="mt-3 uppercase text-ink-soft">
-                  Get a downloadable PDF with your top design style, color palettes, and
-                  expert tips.
+                  Get a downloadable PDF with your top design style, color
+                  palettes, and expert tips.
                 </p>
               </li>
               <li>
-                <p className="font-semibold uppercase">8 Unique Design Styles</p>
+                <p className="font-semibold uppercase">
+                  8 Unique Design Styles
+                </p>
                 <p className="mt-3 uppercase text-ink-soft">
                   From French Country to Japandi, discover which of our curated
                   aesthetics matches your taste.
                 </p>
               </li>
               <li>
-                <p className="font-semibold uppercase">Actionable Design Tips</p>
+                <p className="font-semibold uppercase">
+                  Actionable Design Tips
+                </p>
                 <p className="mt-3 uppercase text-ink-soft">
-                  Practical recommendations for furniture, finishes, metals, and color
-                  schemes.
+                  Practical recommendations for furniture, finishes, metals, and
+                  color schemes.
                 </p>
               </li>
             </ul>
@@ -217,8 +229,8 @@ export default function HomePage() {
             <div className="flex flex-col items-center justify-center text-center">
               <p className="eyebrow">Design Style Quiz</p>
               <p className="mt-8 max-w-xs text-sm uppercase tracking-[0.2em] text-ink">
-                Take the quiz, uncover your style, and receive your personalized PDF
-                style guide.
+                Take the quiz, uncover your style, and receive your personalized
+                PDF style guide.
               </p>
               <Link href="/get-started" className="btn-amber mt-10">
                 Discover your style →
@@ -260,30 +272,36 @@ export default function HomePage() {
 
           <div className="mt-14 grid gap-14 md:grid-cols-2 md:gap-20">
             <article className="text-center">
-              <h3 className="font-serif text-2xl italic md:text-[28px]">Our Mission</h3>
+              <h3 className="font-serif text-2xl italic md:text-[28px]">
+                Our Mission
+              </h3>
               <p className="mt-6 text-sm leading-relaxed text-ink-soft md:text-[15px]">
-                We are dedicated to helping you enhance your living spaces and the
-                comfort of your lives. Our Style and Design Evaluation reveals your
-                personalized choices when it comes to selecting a style that suits you
-                best. We believe that by teaching you the foundation of your preferred
-                expression of the eight design styles, you can learn to create stunning
-                spaces that exude your unique individualism. We want you to experience
-                the pride and joy of coming home to a beautiful sanctuary, one that
-                speaks to your soul.
+                We are dedicated to helping you enhance your living spaces and
+                the comfort of your lives. Our Style and Design Evaluation
+                reveals your personalized choices when it comes to selecting a
+                style that suits you best. We believe that by teaching you the
+                foundation of your preferred expression of the eight design
+                styles, you can learn to create stunning spaces that exude your
+                unique individualism. We want you to experience the pride and
+                joy of coming home to a beautiful sanctuary, one that speaks to
+                your soul.
               </p>
             </article>
 
             <article className="text-center">
-              <h3 className="font-serif text-2xl italic md:text-[28px]">Our Vision</h3>
+              <h3 className="font-serif text-2xl italic md:text-[28px]">
+                Our Vision
+              </h3>
               <p className="mt-6 text-sm leading-relaxed text-ink-soft md:text-[15px]">
-                Focusing your purchases and investments into meaningful creations, as you
-                develop your own aesthetic, is good for all of us. Investing your time
-                and money into making wise and purposeful decisions to enhance your
-                spaces, thus reducing landfill waste with the trends of today, is a
-                start. By providing you with an introduction into the eight essential
-                design styles of today, we feel that you will begin to design and
-                decorate for your future, while reducing the amount of &ldquo;fast
-                furniture&rdquo; filling landfills today.
+                Focusing your purchases and investments into meaningful
+                creations, as you develop your own aesthetic, is good for all of
+                us. Investing your time and money into making wise and
+                purposeful decisions to enhance your spaces, thus reducing
+                landfill waste with the trends of today, is a start. By
+                providing you with an introduction into the eight essential
+                design styles of today, we feel that you will begin to design
+                and decorate for your future, while reducing the amount of
+                &ldquo;fast furniture&rdquo; filling landfills today.
               </p>
             </article>
           </div>
@@ -299,8 +317,8 @@ export default function HomePage() {
               Trusted by homeowners
             </h2>
             <p className="mt-5 text-sm text-ink-soft md:text-base">
-              Hear from homeowners who&rsquo;ve transformed their spaces with Styled My
-              Home.
+              Hear from homeowners who&rsquo;ve transformed their spaces with
+              Styled My Home.
             </p>
           </div>
 
@@ -320,7 +338,9 @@ export default function HomePage() {
                 </blockquote>
                 <figcaption className="mt-6">
                   <p className="text-sm font-semibold">{t.name}</p>
-                  <p className="mt-1 text-xs tracking-wide text-ink-soft">{t.role}</p>
+                  <p className="mt-1 text-xs tracking-wide text-ink-soft">
+                    {t.role}
+                  </p>
                 </figcaption>
               </figure>
             ))}
@@ -331,14 +351,16 @@ export default function HomePage() {
       {/* SUBSCRIBE */}
       <section className="bg-cream py-20">
         <div className="mx-auto flex max-w-2xl flex-col items-center px-6 text-center">
-          <p className="eyebrow">Stay inspired — get a free measurement guide</p>
+          <p className="eyebrow">
+            Stay inspired — get a free measurement guide
+          </p>
           <SubscribeForm className="mt-6" source="home-measurement-guide" />
           <p className="mt-8 text-sm uppercase tracking-[0.2em] text-ink">
             Subscribe &amp; get a free home measurement guide PDF
           </p>
           <p className="mt-8 max-w-md text-sm uppercase tracking-[0.18em] text-ink-soft">
-            Discover your unique interior design style and create spaces that truly feel
-            like home.
+            Discover your unique interior design style and create spaces that
+            truly feel like home.
           </p>
         </div>
       </section>

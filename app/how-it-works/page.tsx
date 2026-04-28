@@ -23,7 +23,7 @@ const STEPS = [
     number: "03",
     title: "Use your style guide to decorate with confidence",
     description:
-      "Unlock your personalized PDF style guide — packed with color palettes, material recommendations, décor tips, and inspiration tailored to you.",
+      "Download your personalized PDF style guide — packed with color palettes, material recommendations, décor tips, and inspiration tailored to you.",
   },
 ];
 

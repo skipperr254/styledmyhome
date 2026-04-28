@@ -15,10 +15,11 @@ const DESCRIPTIONS = {
 } as const;
 
 export async function POST(req: NextRequest) {
-  const { quizSessionId, purchaseType, styleName } = await req.json() as {
+  const { quizSessionId, purchaseType, styleName, customerEmail } = await req.json() as {
     quizSessionId: string;
     purchaseType: "single" | "complete";
     styleName: string;
+    customerEmail?: string;
   };
 
   if (!quizSessionId || !purchaseType) {
@@ -26,6 +27,7 @@ export async function POST(req: NextRequest) {
   }
 
   const session = await stripe.checkout.sessions.create({
+    ...(customerEmail ? { customer_email: customerEmail } : {}),
     payment_method_types: ["card"],
     mode: "payment",
     line_items: [

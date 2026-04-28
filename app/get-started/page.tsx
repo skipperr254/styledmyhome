@@ -11,8 +11,8 @@ export default function GetStartedPage() {
   const [name, setName] = useState("");
 
   function handleBegin() {
-    const query = name.trim() ? `?name=${encodeURIComponent(name.trim())}` : "";
-    router.push(`/how-it-works${query}`);
+    if (!name.trim()) return;
+    router.push(`/how-it-works?name=${encodeURIComponent(name.trim())}`);
   }
 
   function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
@@ -40,7 +40,7 @@ export default function GetStartedPage() {
               htmlFor="name"
               className="block text-xs font-medium tracking-widest uppercase mb-2 text-stone"
             >
-              Your first name (optional)
+              Your first name
             </label>
             <input
               id="name"
@@ -56,7 +56,8 @@ export default function GetStartedPage() {
 
           <button
             onClick={handleBegin}
-            className="w-full py-4 px-8 rounded-full bg-amber hover:bg-amber-deep text-ink hover:text-white font-semibold text-xs uppercase tracking-[0.22em] transition-colors duration-200"
+            disabled={!name.trim()}
+            className="w-full py-4 px-8 rounded-full bg-amber hover:bg-amber-deep disabled:opacity-40 disabled:cursor-not-allowed text-ink hover:text-white font-semibold text-xs uppercase tracking-[0.22em] transition-colors duration-200"
           >
             Let&rsquo;s Begin
           </button>

@@ -34,10 +34,15 @@ export default function PaymentClient({
   showCancelledNotice,
 }: Props) {
   const router = useRouter();
+  const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
   async function handleCheckout() {
+    if (!email.trim() || !email.includes("@")) {
+      setError("Please enter a valid email address.");
+      return;
+    }
     setLoading(true);
     setError("");
     try {
@@ -48,6 +53,7 @@ export default function PaymentClient({
           quizSessionId: sessionId,
           purchaseType: "single",
           styleName,
+          customerEmail: email.trim(),
         }),
       });
 
@@ -138,6 +144,18 @@ export default function PaymentClient({
 
           {/* CTA */}
           <div className="space-y-3">
+            <div>
+              <label className="block text-xs font-medium tracking-widest uppercase text-stone mb-2">
+                Email address
+              </label>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="you@example.com"
+                className="w-full px-5 py-3 rounded-full border border-ink/10 text-ink placeholder:text-stone/60 focus:outline-none focus:ring-2 focus:ring-amber transition text-sm mb-3"
+              />
+            </div>
             <button
               onClick={handleCheckout}
               disabled={loading}

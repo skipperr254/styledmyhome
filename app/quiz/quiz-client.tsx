@@ -20,8 +20,6 @@ type Question = {
   images: QuizImage[];
 };
 
-const LETTERS = ["A", "B", "C", "D", "E", "F", "G", "H"] as const;
-
 function shuffle<T>(arr: T[]): T[] {
   const a = [...arr];
   for (let i = a.length - 1; i > 0; i--) {
@@ -296,10 +294,6 @@ export default function QuizClient() {
                 sizes="(max-width: 768px) 50vw, 25vw"
                 className="object-cover transition-transform duration-300 group-hover:scale-[1.04]"
               />
-              {/* Letter badge */}
-              <span className="absolute top-2 left-2 w-6 h-6 rounded-full bg-white/85 backdrop-blur-sm flex items-center justify-center text-xs font-semibold text-ink pointer-events-none z-10">
-                {LETTERS[i]}
-              </span>
               {/* Hover tint */}
               <div className="absolute inset-0 bg-amber/0 group-hover:bg-amber/10 transition-colors duration-300 rounded-xl pointer-events-none" />
             </button>
