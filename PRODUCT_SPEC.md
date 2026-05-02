@@ -60,7 +60,7 @@ The questions, in no particular order (they should be randomized each time), cov
 | 3   | Which dining room style can you see yourself enjoying meals in? | 8 dining room photos                                           |
 | 4   | Which primary bedroom style would make you feel most at home?   | 8 bedroom photos                                               |
 | 5   | Which primary bathroom style appeals to you most?               | 8 bathroom photos                                              |
-| 6   | Which wood finish appeals to you?                               | 8 home office photos (showing different wood tones in context) |
+| 6   | Which home office do you see yourself most productive in?       | 8 home office photos (showing different wood tones in context) |
 | 7   | Which entryway style would welcome you home?                    | 8 entryway/foyer photos                                        |
 | 8   | Which outdoor patio style would be your perfect retreat?        | 8 patio photos                                                 |
 | 9   | Which color palette do you prefer?                              | 8 color palette images, one per style                          |

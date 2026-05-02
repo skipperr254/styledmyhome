@@ -310,7 +310,9 @@ export default async function ResultsPage({ searchParams }: Props) {
             {topStyles.map((s, i) => (
               <div key={s.id}>
                 <div className="flex justify-between items-baseline text-sm mb-2">
-                  <span className={`font-medium ${i === 0 ? "text-ink" : "text-ink-soft"}`}>
+                  <span
+                    className={`font-medium ${i === 0 ? "text-ink" : "text-ink-soft"}`}
+                  >
                     {s.name}
                     {i === 0 && (
                       <span className="ml-2 text-xs font-normal text-amber">
@@ -318,7 +320,9 @@ export default async function ResultsPage({ searchParams }: Props) {
                       </span>
                     )}
                   </span>
-                  <span className="text-stone font-medium tabular-nums">{s.pct}%</span>
+                  <span className="text-stone font-medium tabular-nums">
+                    {s.pct}%
+                  </span>
                 </div>
                 <div className="h-2 bg-ink/10 rounded-full overflow-hidden">
                   <div
