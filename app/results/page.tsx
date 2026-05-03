@@ -50,7 +50,7 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
 }
 
 export default async function ResultsPage({ searchParams }: Props) {
-  const { session: sessionId, complete_checkout, cancelled } = await searchParams;
+  const { session: sessionId, complete_checkout } = await searchParams;
 
   if (!sessionId) notFound();
 
@@ -195,7 +195,7 @@ export default async function ResultsPage({ searchParams }: Props) {
 
         {/* ── Hero Image ── */}
         {style.hero_image_url && (
-          <section className="relative aspect-[16/9] w-full overflow-hidden rounded-2xl shadow-md">
+          <section className="relative aspect-video w-full overflow-hidden rounded-2xl shadow-md">
             <Image
               src={style.hero_image_url}
               alt={`${style.name} interior design`}

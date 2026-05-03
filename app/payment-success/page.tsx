@@ -103,16 +103,10 @@ export default async function PaymentSuccessPage({ searchParams }: Props) {
           {firstName ? `You're all set, ${firstName}!` : "You're all set!"}
         </h1>
 
-        <p className="text-base leading-relaxed text-ink-soft mb-3 max-w-sm mx-auto">
+        <p className="text-base leading-relaxed text-ink-soft mb-10 max-w-sm mx-auto">
           Your style quiz is ready. Answer 11 visual questions and we&rsquo;ll
           reveal your interior design style — along with your personalized PDF
           guide.
-        </p>
-
-        <p className="text-sm text-stone mb-10">
-          You have{" "}
-          <span className="font-medium text-ink">3 quiz attempts</span> included
-          with your purchase.
         </p>
 
         <Link
