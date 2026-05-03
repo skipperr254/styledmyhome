@@ -1,56 +1,84 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@/lib/supabase/server";
+import { createServiceClient } from "@/lib/supabase/server";
 import { calculateScores } from "@/lib/quiz/scoring";
 
 export async function POST(req: NextRequest) {
-  const { userName, answers, paidSessionId } = await req.json() as {
-    userName?: string;
+  // Verify auth
+  const supabase = await createServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+  }
+
+  const { answers, purchaseId } = (await req.json()) as {
     answers: { styleId: string }[];
-    paidSessionId?: string;
+    purchaseId: string;
   };
 
   if (!Array.isArray(answers) || answers.length === 0) {
     return NextResponse.json({ error: "No answers provided" }, { status: 400 });
   }
 
-  const { dominant, scores } = calculateScores(answers);
-  const supabase = createServerClient();
+  if (!purchaseId) {
+    return NextResponse.json({ error: "Missing purchase ID" }, { status: 400 });
+  }
 
-  const { data, error } = await supabase
+  // Use service client for writes (bypasses RLS cleanly)
+  const service = createServiceClient();
+
+  // Verify the purchase belongs to this user and has retakes remaining
+  const { data: purchase, error: purchaseErr } = await service
+    .from("purchases")
+    .select("id, user_id, retakes_used, retakes_allowed")
+    .eq("id", purchaseId)
+    .eq("user_id", user.id)
+    .eq("purchase_type", "quiz_access")
+    .maybeSingle();
+
+  if (purchaseErr || !purchase) {
+    return NextResponse.json({ error: "Purchase not found" }, { status: 404 });
+  }
+
+  if (purchase.retakes_used >= purchase.retakes_allowed) {
+    return NextResponse.json({ error: "No retakes remaining" }, { status: 403 });
+  }
+
+  const { dominant, scores } = calculateScores(answers);
+
+  // Save the quiz session
+  const { data: session, error: sessionErr } = await service
     .from("quiz_sessions")
     .insert({
-      user_name: userName || null,
+      user_id: user.id,
+      purchase_id: purchaseId,
       dominant_style_id: dominant,
       style_scores: scores,
     })
     .select("id")
     .single();
 
-  if (error || !data) {
-    console.error("quiz_sessions insert failed:", error);
-    return NextResponse.json({ error: "Failed to save session" }, { status: 500 });
+  if (sessionErr || !session) {
+    console.error("[quiz/complete] quiz_sessions insert failed:", sessionErr);
+    return NextResponse.json(
+      { error: "Failed to save session" },
+      { status: 500 },
+    );
   }
 
-  // If the user already paid in a previous session, grant access to this retake for free
-  if (paidSessionId) {
-    const { data: originalPurchase } = await supabase
-      .from("purchases")
-      .select("id, email")
-      .eq("quiz_session_id", paidSessionId)
-      .eq("purchase_type", "single")
-      .maybeSingle();
+  // Increment retakes_used
+  const { error: updateErr } = await service
+    .from("purchases")
+    .update({ retakes_used: purchase.retakes_used + 1 })
+    .eq("id", purchaseId);
 
-    if (originalPurchase) {
-      await supabase.from("purchases").insert({
-        quiz_session_id: data.id,
-        email: originalPurchase.email,
-        purchase_type: "single",
-        // No stripe_checkout_session_id — this is a free retake
-      });
-
-      return NextResponse.json({ sessionId: data.id, skipPayment: true });
-    }
+  if (updateErr) {
+    console.error("[quiz/complete] retakes_used update failed:", updateErr);
+    // Non-fatal — session is saved, don't fail the request
   }
 
-  return NextResponse.json({ sessionId: data.id, dominantStyleId: dominant });
+  return NextResponse.json({ sessionId: session.id });
 }

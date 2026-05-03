@@ -3,6 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import Image from "next/image";
 import type { Metadata } from "next";
 import { createServerClient } from "@/lib/supabase/server";
+import { createServiceClient } from "@/lib/supabase/server";
 import { stripe } from "@/lib/stripe/client";
 import ResultsClient from "./results-client";
 
@@ -22,51 +23,18 @@ type StyleRow = {
 
 type SearchParams = {
   session?: string;
-  checkout_session?: string;
   complete_checkout?: string;
+  cancelled?: string;
 };
 
 type Props = { searchParams: Promise<SearchParams> };
 
-async function verifyAndRecordPurchase(
-  supabase: ReturnType<typeof createServerClient>,
-  quizSessionId: string,
-  checkoutSessionId: string,
-  purchaseType: "single" | "complete",
-) {
-  const { data: existing } = await supabase
-    .from("purchases")
-    .select("id")
-    .eq("stripe_checkout_session_id", checkoutSessionId)
-    .maybeSingle();
-
-  if (existing) return true;
-
-  const stripeSession =
-    await stripe.checkout.sessions.retrieve(checkoutSessionId);
-  if (stripeSession.payment_status !== "paid") return false;
-
-  await supabase.from("purchases").upsert(
-    {
-      quiz_session_id: quizSessionId,
-      email: stripeSession.customer_email ?? "",
-      purchase_type: purchaseType,
-      stripe_checkout_session_id: checkoutSessionId,
-    },
-    { onConflict: "stripe_checkout_session_id" },
-  );
-
-  return true;
-}
-
-export async function generateMetadata({
-  searchParams,
-}: Props): Promise<Metadata> {
+export async function generateMetadata({ searchParams }: Props): Promise<Metadata> {
   const { session: sessionId } = await searchParams;
   if (!sessionId) return { title: "Your Results — Styled My Home" };
 
-  const supabase = createServerClient();
-  const { data } = await supabase
+  const service = createServiceClient();
+  const { data } = await service
     .from("quiz_sessions")
     .select("dominant_style_id, styles(name)")
     .eq("id", sessionId)
@@ -82,67 +50,85 @@ export async function generateMetadata({
 }
 
 export default async function ResultsPage({ searchParams }: Props) {
-  const {
-    session: sessionId,
-    checkout_session,
-    complete_checkout,
-  } = await searchParams;
+  const { session: sessionId, complete_checkout, cancelled } = await searchParams;
 
   if (!sessionId) notFound();
 
-  const supabase = createServerClient();
+  const supabase = await createServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
-  if (checkout_session) {
-    const ok = await verifyAndRecordPurchase(
-      supabase,
-      sessionId,
-      checkout_session,
-      "single",
-    );
-    if (!ok) redirect(`/payment?session=${sessionId}&cancelled=1`);
-  }
+  if (!user) redirect(`/get-started?redirect=/results?session=${sessionId}`);
 
+  const service = createServiceClient();
+
+  // Handle complete guide purchase return from Stripe
   if (complete_checkout) {
-    await verifyAndRecordPurchase(
-      supabase,
-      sessionId,
-      complete_checkout,
-      "complete",
-    );
+    try {
+      const stripeSession = await stripe.checkout.sessions.retrieve(complete_checkout);
+      if (stripeSession.payment_status === "paid") {
+        await service.from("purchases").upsert(
+          {
+            user_id: user.id,
+            purchase_type: "complete_guide",
+            stripe_checkout_session_id: complete_checkout,
+            retakes_used: 0,
+            retakes_allowed: 0,
+          },
+          { onConflict: "stripe_checkout_session_id" },
+        );
+      }
+    } catch (err) {
+      console.error("[results] complete_guide purchase verification failed:", err);
+    }
   }
 
-  const { data: purchase } = await supabase
-    .from("purchases")
-    .select("id")
-    .eq("quiz_session_id", sessionId)
-    .eq("purchase_type", "single")
-    .maybeSingle();
-
-  if (!purchase) redirect(`/payment?session=${sessionId}`);
-
+  // Load quiz session — RLS ensures user can only see their own
   const { data: quizSession } = await supabase
     .from("quiz_sessions")
-    .select("id, dominant_style_id, user_name, style_scores")
+    .select("id, dominant_style_id, user_name, style_scores, purchase_id")
     .eq("id", sessionId)
     .single();
 
-  if (!quizSession) notFound();
+  if (!quizSession) {
+    // Session doesn't exist or doesn't belong to this user
+    redirect("/my-results");
+  }
 
-  const { data: style } = await supabase
+  const { data: styleRaw } = await service
     .from("styles")
     .select("*")
     .eq("id", quizSession.dominant_style_id)
-    .single<StyleRow>();
+    .single();
+
+  const style = styleRaw as StyleRow | null;
 
   if (!style) notFound();
 
+  // Check for complete guide purchase
   const { data: completePurchase } = await supabase
     .from("purchases")
     .select("id")
-    .eq("quiz_session_id", sessionId)
-    .eq("purchase_type", "complete")
+    .eq("user_id", user.id)
+    .eq("purchase_type", "complete_guide")
     .maybeSingle();
 
+  // How many quiz retakes does the user have left?
+  const { data: activePurchase } = await supabase
+    .from("purchases")
+    .select("retakes_used, retakes_allowed")
+    .eq("user_id", user.id)
+    .eq("purchase_type", "quiz_access")
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  const retakesRemaining = activePurchase
+    ? activePurchase.retakes_allowed - activePurchase.retakes_used
+    : 0;
+
+  // Style match breakdown
   const scores = quizSession.style_scores as Record<string, number>;
   const totalAnswers = Object.values(scores).reduce((a, b) => a + b, 0);
   const topStyleIds = Object.entries(scores)
@@ -153,30 +139,37 @@ export default async function ResultsPage({ searchParams }: Props) {
       pct: Math.round((count / totalAnswers) * 100),
     }));
 
-  const { data: styleNames } = await supabase
+  const { data: styleNames } = await service
     .from("styles")
     .select("id, name")
-    .in(
-      "id",
-      topStyleIds.map((s) => s.id),
-    );
+    .in("id", topStyleIds.map((s) => s.id));
 
-  const nameMap = Object.fromEntries(
-    (styleNames ?? []).map((s) => [s.id, s.name]),
-  );
+  const nameMap = Object.fromEntries((styleNames ?? []).map((s) => [s.id, s.name]));
   const topStyles = topStyleIds.map((s) => ({
     ...s,
     name: nameMap[s.id] ?? s.id,
   }));
 
+  // Get user's first name
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("full_name")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  const firstName = profile?.full_name?.split(" ")[0] ?? quizSession.user_name ?? null;
+
   return (
     <main className="min-h-screen bg-cream">
       <header className="px-8 py-4 border-b border-ink/10 bg-cream sticky top-0 z-10">
         <Link href="/">
-          <img
+          <Image
             src="/images/styled-my-home-logo.png"
             alt="Styled My Home"
+            width={180}
+            height={72}
             className="h-12 w-auto"
+            priority
           />
         </Link>
       </header>
@@ -187,9 +180,9 @@ export default async function ResultsPage({ searchParams }: Props) {
           <p className="text-xs font-medium tracking-widest uppercase text-stone mb-4">
             Your interior design style
           </p>
-          {quizSession.user_name && (
+          {firstName && (
             <p className="font-serif text-3xl md:text-4xl text-ink-soft mb-2">
-              {quizSession.user_name}, you&apos;re
+              {firstName}, you&apos;re
             </p>
           )}
           <h1 className="font-serif text-5xl md:text-7xl text-amber mb-6 leading-none">
@@ -207,6 +200,7 @@ export default async function ResultsPage({ searchParams }: Props) {
               src={style.hero_image_url}
               alt={`${style.name} interior design`}
               fill
+              unoptimized
               className="object-cover"
               sizes="(max-width: 768px) 100vw, 768px"
               priority
@@ -237,7 +231,7 @@ export default async function ResultsPage({ searchParams }: Props) {
 
         {/* ── Design Tips ── */}
         <section>
-          <SectionLabel>Design & Décor Tips</SectionLabel>
+          <SectionLabel>Design &amp; Décor Tips</SectionLabel>
           <div className="space-y-4">
             {style.design_tips.map((tip, i) => (
               <div
@@ -274,10 +268,7 @@ export default async function ResultsPage({ searchParams }: Props) {
             <SectionLabel>Metal Finishes</SectionLabel>
             <ul className="space-y-3">
               {style.metal_finishes.map((f) => (
-                <li
-                  key={f}
-                  className="flex items-center gap-3 text-sm text-ink-soft"
-                >
+                <li key={f} className="flex items-center gap-3 text-sm text-ink-soft">
                   <span className="w-1.5 h-1.5 rounded-full bg-amber shrink-0" />
                   {f}
                 </li>
@@ -288,10 +279,7 @@ export default async function ResultsPage({ searchParams }: Props) {
             <SectionLabel>Wood Finishes</SectionLabel>
             <ul className="space-y-3">
               {style.wood_finishes.map((f) => (
-                <li
-                  key={f}
-                  className="flex items-center gap-3 text-sm text-ink-soft"
-                >
+                <li key={f} className="flex items-center gap-3 text-sm text-ink-soft">
                   <span className="w-1.5 h-1.5 rounded-full bg-amber shrink-0" />
                   {f}
                 </li>
@@ -310,9 +298,7 @@ export default async function ResultsPage({ searchParams }: Props) {
             {topStyles.map((s, i) => (
               <div key={s.id}>
                 <div className="flex justify-between items-baseline text-sm mb-2">
-                  <span
-                    className={`font-medium ${i === 0 ? "text-ink" : "text-ink-soft"}`}
-                  >
+                  <span className={`font-medium ${i === 0 ? "text-ink" : "text-ink-soft"}`}>
                     {s.name}
                     {i === 0 && (
                       <span className="ml-2 text-xs font-normal text-amber">
@@ -320,9 +306,7 @@ export default async function ResultsPage({ searchParams }: Props) {
                       </span>
                     )}
                   </span>
-                  <span className="text-stone font-medium tabular-nums">
-                    {s.pct}%
-                  </span>
+                  <span className="text-stone font-medium tabular-nums">{s.pct}%</span>
                 </div>
                 <div className="h-2 bg-ink/10 rounded-full overflow-hidden">
                   <div
@@ -335,12 +319,12 @@ export default async function ResultsPage({ searchParams }: Props) {
           </div>
         </section>
 
-        {/* ── Actions ── */}
+        {/* ── Actions: Download + Complete Guide Upsell + Retake ── */}
         <ResultsClient
           sessionId={sessionId}
           styleName={style.name}
           hasCompletePurchase={!!completePurchase}
-          justPurchasedSingle={!!checkout_session}
+          retakesRemaining={retakesRemaining}
           justPurchasedComplete={!!complete_checkout}
         />
       </article>

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { ReactNode } from "react";
 
 export function FunnelHeader({
@@ -12,10 +13,13 @@ export function FunnelHeader({
     <header className="sticky top-0 z-20 bg-cream/95 backdrop-blur-sm border-b border-ink/10">
       <div className="max-w-5xl mx-auto flex items-center justify-between px-6 py-4">
         <Link href="/">
-          <img
+          <Image
             src="/images/styled-my-home-logo.png"
             alt="Styled My Home"
+            width={180}
+            height={72}
             className="h-12 w-auto"
+            priority
           />
         </Link>
         {rightContent}

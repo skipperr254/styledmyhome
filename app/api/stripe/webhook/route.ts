@@ -1,14 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Resend } from "resend";
 import { stripe } from "@/lib/stripe/client";
-import { createServerClient } from "@/lib/supabase/server";
+import { createServiceClient } from "@/lib/supabase/server";
 import { buildPurchaseConfirmationEmail } from "@/lib/email/purchase-confirmation";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
-
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL ?? "https://styledmyhome.com";
-
-// Storage paths for each guide type (relative to the "style-guides" bucket)
 const COMPLETE_GUIDE_PATH = "complete/Styled-My-Home-Style-And-Design-Guide.pdf";
 
 export async function POST(req: NextRequest) {
@@ -29,87 +26,97 @@ export async function POST(req: NextRequest) {
 
   if (event.type === "checkout.session.completed") {
     const session = event.data.object as {
-      metadata?: { quizSessionId?: string; purchaseType?: string };
+      metadata?: {
+        userId?: string;
+        purchaseType?: string;
+        quizSessionId?: string;
+      };
       id: string;
       customer_email?: string | null;
+      payment_status: string;
     };
 
-    const { quizSessionId, purchaseType } = session.metadata ?? {};
+    const { userId, purchaseType, quizSessionId } = session.metadata ?? {};
     const customerEmail = session.customer_email;
 
-    if (quizSessionId && purchaseType) {
-      const supabase = createServerClient();
+    if (!userId || !purchaseType || session.payment_status !== "paid") {
+      console.warn("[webhook] Missing metadata or unpaid session:", session.id);
+      return NextResponse.json({ received: true });
+    }
 
-      // 1. Record the purchase (idempotent)
-      await supabase.from("purchases").upsert(
-        {
-          quiz_session_id: quizSessionId,
-          email: customerEmail ?? "",
-          purchase_type: purchaseType,
-          stripe_checkout_session_id: session.id,
-        },
-        { onConflict: "stripe_checkout_session_id" }
-      );
+    const service = createServiceClient();
 
-      // 2. Send the purchase confirmation email with a PDF download link
-      if (customerEmail) {
-        await sendPurchaseEmail({
-          supabase,
-          customerEmail,
-          quizSessionId,
-          purchaseType: purchaseType as "single" | "complete",
-        });
-      }
+    // Record the purchase (idempotent via stripe_checkout_session_id unique constraint)
+    await service.from("purchases").upsert(
+      {
+        user_id: userId,
+        purchase_type: purchaseType,
+        stripe_checkout_session_id: session.id,
+        retakes_used: 0,
+        retakes_allowed: purchaseType === "quiz_access" ? 3 : 0,
+      },
+      { onConflict: "stripe_checkout_session_id" },
+    );
+
+    // Send confirmation email
+    if (customerEmail) {
+      await sendPurchaseEmail({
+        service,
+        customerEmail,
+        userId,
+        quizSessionId,
+        purchaseType: purchaseType as "quiz_access" | "complete_guide",
+      });
     }
   }
 
   return NextResponse.json({ received: true });
 }
 
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-
 async function sendPurchaseEmail({
-  supabase,
+  service,
   customerEmail,
+  userId,
   quizSessionId,
   purchaseType,
 }: {
-  supabase: ReturnType<typeof createServerClient>;
+  service: ReturnType<typeof createServiceClient>;
   customerEmail: string;
-  quizSessionId: string;
-  purchaseType: "single" | "complete";
+  userId: string;
+  quizSessionId?: string;
+  purchaseType: "quiz_access" | "complete_guide";
 }) {
   try {
-    // Resolve the storage path and style name for the bought guide
     let storagePath: string;
     let styleName: string;
 
-    if (purchaseType === "complete") {
+    if (purchaseType === "complete_guide") {
       storagePath = COMPLETE_GUIDE_PATH;
       styleName = "Complete Style & Design";
     } else {
-      // Look up the dominant style for this quiz session
-      const { data: quizSession } = await supabase
+      // quiz_access — look up style from the user's most recent quiz session
+      const { data: session } = await service
         .from("quiz_sessions")
         .select("dominant_style_id")
-        .eq("id", quizSessionId)
-        .single();
+        .eq("user_id", userId)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
 
-      if (!quizSession) {
-        console.error("[webhook] sendPurchaseEmail: quiz session not found", quizSessionId);
+      if (!session) {
+        // Quiz hasn't been taken yet — that's fine, email will come after quiz
+        console.log("[webhook] No quiz session yet for user", userId, "— skipping email");
         return;
       }
 
-      const { data: style } = await supabase
+      const { data: style } = await service
         .from("styles")
         .select("name, style_guide_pdf_url")
-        .eq("id", quizSession.dominant_style_id)
+        .eq("id", session.dominant_style_id)
         .single();
 
       if (!style?.style_guide_pdf_url) {
-        console.error("[webhook] sendPurchaseEmail: style PDF path not found");
+        console.error("[webhook] Style PDF path not found for", session.dominant_style_id);
         return;
       }
 
@@ -117,20 +124,22 @@ async function sendPurchaseEmail({
       styleName = style.name;
     }
 
-    // Generate a long-lived signed URL (7 days) so the link in the email stays valid
-    const { data: signed, error: signError } = await supabase.storage
+    // 7-day signed URL
+    const { data: signed, error: signError } = await service.storage
       .from("style-guides")
-      .createSignedUrl(storagePath, 60 * 60 * 24 * 7); // 7 days
+      .createSignedUrl(storagePath, 60 * 60 * 24 * 7);
 
     if (signError || !signed?.signedUrl) {
-      console.error("[webhook] sendPurchaseEmail: failed to create signed URL", signError);
+      console.error("[webhook] Failed to create signed URL:", signError);
       return;
     }
 
-    const resultsUrl = `${BASE_URL}/results?session=${quizSessionId}`;
+    const resultsUrl = quizSessionId
+      ? `${BASE_URL}/results?session=${quizSessionId}`
+      : `${BASE_URL}/my-results`;
 
     const { subject, html } = buildPurchaseConfirmationEmail({
-      purchaseType,
+      purchaseType: purchaseType === "quiz_access" ? "single" : "complete",
       styleName,
       downloadUrl: signed.signedUrl,
       resultsUrl,
@@ -144,12 +153,11 @@ async function sendPurchaseEmail({
     });
 
     if (emailError) {
-      console.error("[webhook] sendPurchaseEmail: resend error", emailError);
+      console.error("[webhook] Resend error:", emailError);
     } else {
-      console.log(`[webhook] Purchase confirmation email sent to ${customerEmail} (${purchaseType})`);
+      console.log(`[webhook] Confirmation email sent to ${customerEmail} (${purchaseType})`);
     }
   } catch (err) {
-    // Never let email failures break the webhook response
-    console.error("[webhook] sendPurchaseEmail: unexpected error", err);
+    console.error("[webhook] sendPurchaseEmail unexpected error:", err);
   }
 }

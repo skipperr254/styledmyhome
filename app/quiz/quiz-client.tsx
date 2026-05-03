@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback, useRef } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { supabase } from "@/lib/supabase/client";
 import { calculateScores } from "@/lib/quiz/scoring";
@@ -20,6 +20,12 @@ type Question = {
   images: QuizImage[];
 };
 
+type Props = {
+  purchaseId: string;
+  retakesRemaining: number;
+  firstName: string | null;
+};
+
 function shuffle<T>(arr: T[]): T[] {
   const a = [...arr];
   for (let i = a.length - 1; i > 0; i--) {
@@ -29,7 +35,6 @@ function shuffle<T>(arr: T[]): T[] {
   return a;
 }
 
-/** Kick off browser fetches for a list of image URLs so they warm the cache. */
 function preloadImages(urls: string[]) {
   urls.forEach((src) => {
     const img = new window.Image();
@@ -59,11 +64,12 @@ function QuizSkeleton() {
   );
 }
 
-export default function QuizClient() {
+export default function QuizClient({
+  purchaseId,
+  retakesRemaining,
+  firstName,
+}: Props) {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const name = searchParams.get("name") ?? "";
-
   const [questions, setQuestions] = useState<Question[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -71,12 +77,21 @@ export default function QuizClient() {
   const [answers, setAnswers] = useState<{ styleId: string }[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [transitioning, setTransitioning] = useState(false);
-
-  // Track which question indexes have already been preloaded
+  const [showNoRetakesModal, setShowNoRetakesModal] = useState(false);
+  const [buyingRetakes, setBuyingRetakes] = useState(false);
   const preloadedRef = useRef<Set<number>>(new Set());
+
+  // Show out-of-retakes modal immediately if they're at 0
+  useEffect(() => {
+    if (retakesRemaining <= 0) {
+      setShowNoRetakesModal(true);
+    }
+  }, [retakesRemaining]);
 
   // Load quiz data
   useEffect(() => {
+    if (retakesRemaining <= 0) return; // Don't load if no retakes
+
     async function loadQuiz() {
       const [{ data: images, error: imgErr }, { data: qs, error: qErr }] =
         await Promise.all([
@@ -110,15 +125,12 @@ export default function QuizClient() {
     }
 
     loadQuiz();
-  }, []);
+  }, [retakesRemaining]);
 
-  // Preload strategy: as soon as questions are available, immediately kick off
-  // loading for all questions. We use the Supabase-transformed URLs (smaller
-  // files) so the browser caches the same URLs the <img> tags will use.
+  // Image preloading
   useEffect(() => {
     if (questions.length === 0) return;
 
-    // Preload current + next question immediately (highest priority)
     const urgent = questions.slice(currentIndex, currentIndex + 2);
     urgent.forEach((q, offset) => {
       const idx = currentIndex + offset;
@@ -127,8 +139,6 @@ export default function QuizClient() {
       preloadImages(q.images.map((img) => img.image_url));
     });
 
-    // Schedule remaining questions at low priority after a short delay
-    // so we don't compete with the current question's images
     const timer = setTimeout(() => {
       questions.forEach((q, idx) => {
         if (preloadedRef.current.has(idx)) return;
@@ -155,50 +165,90 @@ export default function QuizClient() {
         }, 150);
       } else {
         setSubmitting(true);
-        const { dominant } = calculateScores(newAnswers);
 
         try {
-          const paidSessionId =
-            localStorage.getItem("smh_paid_session") ?? undefined;
-
           const res = await fetch("/api/quiz/complete", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              userName: name || undefined,
-              answers: newAnswers,
-              paidSessionId,
-            }),
+            body: JSON.stringify({ answers: newAnswers, purchaseId }),
           });
 
           if (!res.ok) throw new Error("Failed to save session");
 
-          const { sessionId, skipPayment } = await res.json();
-
-          if (skipPayment) {
-            router.push(`/results?session=${sessionId}`);
-          } else {
-            const nameParam = name ? `&name=${encodeURIComponent(name)}` : "";
-            router.push(
-              `/payment?session=${sessionId}${nameParam}&style=${dominant}`,
-            );
-          }
+          const { sessionId } = await res.json();
+          router.push(`/results?session=${sessionId}`);
         } catch {
-          const { dominant: dom } = calculateScores(newAnswers);
-          router.push(`/payment?style=${dom}`);
+          const { dominant } = calculateScores(newAnswers);
+          // Fallback — try to navigate even without a session
+          router.push(`/results?style=${dominant}`);
         }
       }
     },
-    [
-      answers,
-      currentIndex,
-      questions.length,
-      submitting,
-      transitioning,
-      name,
-      router,
-    ],
+    [answers, currentIndex, questions.length, submitting, transitioning, purchaseId, router],
   );
+
+  async function handleBuyMoreRetakes() {
+    setBuyingRetakes(true);
+    try {
+      const res = await fetch("/api/stripe/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ purchaseType: "quiz_access" }),
+      });
+      const { url, error: apiError } = await res.json();
+      if (apiError || !url) throw new Error(apiError ?? "Unexpected error");
+      window.location.href = url;
+    } catch {
+      setBuyingRetakes(false);
+      alert("Something went wrong. Please try again.");
+    }
+  }
+
+  // ── Out of retakes modal ──
+  if (showNoRetakesModal) {
+    return (
+      <main className="min-h-screen bg-cream flex flex-col items-center justify-center px-6 py-16">
+        <div className="w-full max-w-md text-center">
+          <div className="w-16 h-16 rounded-full bg-amber/10 flex items-center justify-center mx-auto mb-6">
+            <svg className="w-8 h-8 text-amber" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
+            </svg>
+          </div>
+          <h1 className="font-serif text-3xl text-ink mb-3">
+            You&rsquo;ve used all 3 retakes
+          </h1>
+          <p className="text-ink-soft mb-2 leading-relaxed">
+            {firstName ? `${firstName}, your` : "Your"} quiz access included 3 attempts and you&rsquo;ve used them all.
+          </p>
+          <p className="text-sm text-stone mb-10">
+            Purchase 3 more retakes for $9.99 to keep exploring your style — or head back to your results.
+          </p>
+          <div className="space-y-3">
+            <button
+              onClick={handleBuyMoreRetakes}
+              disabled={buyingRetakes}
+              className="w-full py-4 px-8 rounded-full bg-amber hover:bg-amber-deep disabled:opacity-60 text-ink hover:text-white font-semibold text-xs uppercase tracking-[0.22em] transition-colors duration-200 flex items-center justify-center gap-2"
+            >
+              {buyingRetakes ? (
+                <>
+                  <span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+                  Redirecting…
+                </>
+              ) : (
+                "Get 3 More Retakes — $9.99"
+              )}
+            </button>
+            <button
+              onClick={() => router.push("/my-results")}
+              className="w-full py-3 px-8 rounded-full border border-ink/20 text-ink-soft hover:text-ink text-sm transition-colors"
+            >
+              View My Results Instead
+            </button>
+          </div>
+        </div>
+      </main>
+    );
+  }
 
   if (loading) return <QuizSkeleton />;
 
@@ -206,9 +256,7 @@ export default function QuizClient() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-cream">
         <div className="text-center px-6">
-          <p className="text-ink mb-2 font-medium">
-            Couldn&apos;t load the quiz
-          </p>
+          <p className="text-ink mb-2 font-medium">Couldn&apos;t load the quiz</p>
           <p className="text-sm text-ink-soft mb-6">
             Check your connection and try again.
           </p>
@@ -241,7 +289,6 @@ export default function QuizClient() {
 
   return (
     <main className="min-h-screen bg-cream flex flex-col">
-      {/* Sticky header */}
       <FunnelHeader
         rightContent={
           <p className="text-xs font-medium text-stone">
@@ -258,7 +305,6 @@ export default function QuizClient() {
         }
       />
 
-      {/* Question text */}
       <div
         className={`max-w-5xl mx-auto w-full px-6 pt-8 pb-5 transition-opacity duration-150 ${
           transitioning ? "opacity-0" : "opacity-100"
@@ -272,14 +318,13 @@ export default function QuizClient() {
         </p>
       </div>
 
-      {/* Image grid */}
       <div
         className={`max-w-5xl mx-auto w-full px-4 pb-10 transition-opacity duration-150 ${
           transitioning ? "opacity-0" : "opacity-100"
         }`}
       >
         <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-3">
-          {question.images.map((img, i) => (
+          {question.images.map((img) => (
             <button
               key={img.id}
               onClick={() => handleAnswer(img.style_id)}
@@ -294,7 +339,6 @@ export default function QuizClient() {
                 sizes="(max-width: 768px) 50vw, 25vw"
                 className="object-cover transition-transform duration-300 group-hover:scale-[1.04]"
               />
-              {/* Hover tint */}
               <div className="absolute inset-0 bg-amber/0 group-hover:bg-amber/10 transition-colors duration-300 rounded-xl pointer-events-none" />
             </button>
           ))}

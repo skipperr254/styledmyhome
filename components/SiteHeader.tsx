@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 
 type Variant = "light" | "dark";
@@ -42,11 +43,14 @@ export function SiteHeader({ variant = "dark" }: SiteHeaderProps) {
       <nav className="mx-auto flex max-w-7xl items-center justify-between px-6 py-6 md:px-12 md:py-8">
         {/* Logo → home */}
         <Link href="/" aria-label="Styled My Home — home" className="block shrink-0">
-          <img
+          <Image
             src="/images/styled-my-home-logo.png"
             alt="Styled My Home"
-            className="h-16 w-auto md:h-20"
+            width={200}
+            height={80}
+            className="h-16 md:h-20 w-auto"
             style={logoFilter ? { filter: logoFilter } : undefined}
+            priority
           />
         </Link>
 

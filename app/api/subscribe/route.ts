@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Resend } from "resend";
-import { createServerClient } from "@/lib/supabase/server";
+import { createServiceClient } from "@/lib/supabase/server";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -80,7 +80,7 @@ export async function POST(req: NextRequest) {
   }
 
   const normalised = email.trim().toLowerCase();
-  const supabase = createServerClient();
+  const supabase = createServiceClient();
 
   // Silently succeed for duplicates so we don't leak whether an email is subscribed
   const { data: existing } = await supabase

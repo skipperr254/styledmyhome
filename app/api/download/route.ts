@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { createServerClient, createServiceClient } from "@/lib/supabase/server";
 
 const MASTER_GUIDE_PATH = "complete/Styled-My-Home-Style-And-Design-Guide.pdf";
 
@@ -12,19 +12,63 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Missing params" }, { status: 400 });
   }
 
-  const supabase = createServerClient();
+  // Verify the requesting user is authenticated
+  const supabase = await createServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
-  const { data: purchase } = await supabase
-    .from("purchases")
-    .select("id, purchase_type")
-    .eq("quiz_session_id", sessionId)
-    .eq("purchase_type", type)
-    .maybeSingle();
-
-  if (!purchase) {
-    return NextResponse.json({ error: "No valid purchase found" }, { status: 403 });
+  if (!user) {
+    return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
   }
 
+  const service = createServiceClient();
+
+  // Verify the quiz session belongs to this user
+  const { data: quizSession } = await service
+    .from("quiz_sessions")
+    .select("id, dominant_style_id, user_id")
+    .eq("id", sessionId)
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  if (!quizSession) {
+    return NextResponse.json({ error: "Session not found" }, { status: 404 });
+  }
+
+  // For complete_guide downloads, verify they have a complete_guide purchase
+  if (type === "complete") {
+    const { data: completePurchase } = await service
+      .from("purchases")
+      .select("id")
+      .eq("user_id", user.id)
+      .eq("purchase_type", "complete_guide")
+      .maybeSingle();
+
+    if (!completePurchase) {
+      return NextResponse.json(
+        { error: "No complete guide purchase found" },
+        { status: 403 },
+      );
+    }
+  } else {
+    // For single (quiz_access) downloads, verify they have a quiz_access purchase
+    const { data: quizPurchase } = await service
+      .from("purchases")
+      .select("id")
+      .eq("user_id", user.id)
+      .eq("purchase_type", "quiz_access")
+      .maybeSingle();
+
+    if (!quizPurchase) {
+      return NextResponse.json(
+        { error: "No quiz access purchase found" },
+        { status: 403 },
+      );
+    }
+  }
+
+  // Resolve the storage path and filename
   let storagePath: string;
   let filename: string;
 
@@ -32,41 +76,34 @@ export async function GET(req: NextRequest) {
     storagePath = MASTER_GUIDE_PATH;
     filename = "Styled-My-Home-Complete-Style-Guide.pdf";
   } else {
-    const { data: session } = await supabase
-      .from("quiz_sessions")
-      .select("dominant_style_id")
-      .eq("id", sessionId)
-      .single();
-
-    if (!session) {
-      return NextResponse.json({ error: "Session not found" }, { status: 404 });
-    }
-
-    const { data: style } = await supabase
+    const { data: style } = await service
       .from("styles")
       .select("name, style_guide_pdf_url")
-      .eq("id", session.dominant_style_id)
+      .eq("id", quizSession.dominant_style_id)
       .single();
 
     if (!style?.style_guide_pdf_url) {
-      return NextResponse.json({ error: "PDF not available" }, { status: 404 });
+      return NextResponse.json(
+        { error: "PDF not available for this style yet" },
+        { status: 404 },
+      );
     }
 
     storagePath = style.style_guide_pdf_url;
     filename = `Styled-My-Home-${style.name.replace(/\s+/g, "-")}-Style-Guide.pdf`;
   }
 
-  await supabase.rpc("increment_download_count", { purchase_id: purchase.id });
-
-  // Generate a short-lived signed URL then proxy the file through this route.
-  // Proxying (rather than redirecting) lets us set Content-Disposition: attachment
-  // so the browser downloads the file without navigating away.
-  const { data: signed, error: signError } = await supabase.storage
+  // Generate a short-lived signed URL then stream the file through this route
+  // so we can set Content-Disposition: attachment and keep the URL private.
+  const { data: signed, error: signError } = await service.storage
     .from("style-guides")
-    .createSignedUrl(storagePath, 60); // 60 s — only needs to survive the proxy fetch
+    .createSignedUrl(storagePath, 60); // 60 s — only needs to survive the stream
 
   if (signError || !signed?.signedUrl) {
-    return NextResponse.json({ error: "Could not generate download link" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Could not generate download link" },
+      { status: 500 },
+    );
   }
 
   const fileRes = await fetch(signed.signedUrl);

@@ -2,6 +2,7 @@
 
 import { useState, type ReactNode } from "react";
 import Link from "next/link";
+import Image from "next/image";
 
 type OpenPanel = "none" | "contact" | "faq";
 
@@ -153,9 +154,11 @@ export function SiteFooter() {
           <div className="flex flex-col gap-8">
             <div>
               <Link href="/" aria-label="Styled My Home — home" className="inline-block">
-                <img
+                <Image
                   src="/images/styled-my-home-logo.png"
                   alt="Styled My Home"
+                  width={220}
+                  height={88}
                   className="h-24 w-auto"
                 />
               </Link>
