@@ -1,4 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { isUserAdmin } from "./admin";
 
 /**
  * Given an authenticated user, inspects their DB state and returns
@@ -7,7 +8,8 @@ import type { SupabaseClient } from "@supabase/supabase-js";
  * Priority order:
  *  1. They have a completed quiz session → show their latest results
  *  2. They have a paid quiz_access purchase but no session yet → take the quiz
- *  3. They have no purchase → go pay (/how-it-works)
+ *  3. Admin bypass → go to quiz
+ *  4. They have no purchase → go pay (/how-it-works)
  */
 export async function resolveUserDestination(
   userId: string,
@@ -41,6 +43,13 @@ export async function resolveUserDestination(
     return "/quiz";
   }
 
-  // 3. No purchase → take them to the payment page
+  // 3. Admin bypass
+  const isAdmin = await isUserAdmin(userId, supabase);
+  if (isAdmin) {
+    return "/quiz";
+  }
+
+  // 4. No purchase → take them to the payment page
   return "/how-it-works";
 }
+

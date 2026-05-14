@@ -24,6 +24,7 @@ type Props = {
   purchaseId: string;
   retakesRemaining: number;
   firstName: string | null;
+  isAdmin?: boolean;
 };
 
 function shuffle<T>(arr: T[]): T[] {
@@ -68,7 +69,9 @@ export default function QuizClient({
   purchaseId,
   retakesRemaining,
   firstName,
+  isAdmin = false,
 }: Props) {
+
   const router = useRouter();
   const [questions, setQuestions] = useState<Question[]>([]);
   const [loading, setLoading] = useState(true);
@@ -81,16 +84,16 @@ export default function QuizClient({
   const [buyingRetakes, setBuyingRetakes] = useState(false);
   const preloadedRef = useRef<Set<number>>(new Set());
 
-  // Show out-of-retakes modal immediately if they're at 0
+  // Show out-of-retakes modal immediately if they're at 0 (and not admin)
   useEffect(() => {
-    if (retakesRemaining <= 0) {
+    if (!isAdmin && retakesRemaining <= 0) {
       setShowNoRetakesModal(true);
     }
-  }, [retakesRemaining]);
+  }, [retakesRemaining, isAdmin]);
 
   // Load quiz data
   useEffect(() => {
-    if (retakesRemaining <= 0) return; // Don't load if no retakes
+    if (!isAdmin && retakesRemaining <= 0) return; // Don't load if no retakes
 
     async function loadQuiz() {
       const [{ data: images, error: imgErr }, { data: qs, error: qErr }] =
@@ -125,7 +128,8 @@ export default function QuizClient({
     }
 
     loadQuiz();
-  }, [retakesRemaining]);
+  }, [retakesRemaining, isAdmin]);
+
 
   // Image preloading
   useEffect(() => {

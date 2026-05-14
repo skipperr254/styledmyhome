@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import type { Metadata } from "next";
 import { createServerClient } from "@/lib/supabase/server";
+import { isUserAdmin } from "@/lib/auth/admin";
 import QuizClient from "./quiz-client";
 
 export const metadata: Metadata = {
@@ -16,6 +17,9 @@ export default async function QuizPage() {
   // Middleware handles unauthenticated redirect, but double-check here
   if (!user) redirect("/get-started");
 
+  // Check if user is an admin
+  const isAdmin = await isUserAdmin(user.id, supabase);
+
   // Find the user's most recent quiz_access purchase
   const { data: purchase } = await supabase
     .from("purchases")
@@ -26,11 +30,16 @@ export default async function QuizPage() {
     .limit(1)
     .maybeSingle();
 
-  // No purchase → send to payment
-  if (!purchase) redirect("/how-it-works");
+  // If not admin and no purchase → send to payment
+  if (!isAdmin && !purchase) redirect("/how-it-works");
 
-  // Out of retakes → quiz client will show the "buy more" prompt
-  const retakesRemaining = purchase.retakes_allowed - purchase.retakes_used;
+  // For admins without a purchase, we provide a dummy purchase ID or similar
+  // Actually, it's better if they have a purchase, but for testing we can mock it.
+  // We'll pass isAdmin to the client so it can bypass checks.
+  const purchaseId = purchase?.id ?? "admin-test-mode";
+  const retakesRemaining = isAdmin 
+    ? 999 
+    : (purchase ? purchase.retakes_allowed - purchase.retakes_used : 0);
 
   // Get first name for personalisation
   const { data: profile } = await supabase
@@ -43,9 +52,11 @@ export default async function QuizPage() {
 
   return (
     <QuizClient
-      purchaseId={purchase.id}
+      purchaseId={purchaseId}
       retakesRemaining={retakesRemaining}
       firstName={firstName}
+      isAdmin={isAdmin}
     />
   );
 }
+

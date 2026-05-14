@@ -30,21 +30,36 @@ export async function POST(req: NextRequest) {
   // Use service client for writes (bypasses RLS cleanly)
   const service = createServiceClient();
 
-  // Verify the purchase belongs to this user and has retakes remaining
-  const { data: purchase, error: purchaseErr } = await service
-    .from("purchases")
-    .select("id, user_id, retakes_used, retakes_allowed")
-    .eq("id", purchaseId)
-    .eq("user_id", user.id)
-    .eq("purchase_type", "quiz_access")
-    .maybeSingle();
+  // Check if user is an admin
+  const { data: profile } = await service
+    .from("profiles")
+    .select("is_admin")
+    .eq("id", user.id)
+    .single();
+  
+  const isAdmin = !!profile?.is_admin;
 
-  if (purchaseErr || !purchase) {
-    return NextResponse.json({ error: "Purchase not found" }, { status: 404 });
-  }
+  let purchase = null;
+  
+  if (!isAdmin || purchaseId !== "admin-test-mode") {
+    // Verify the purchase belongs to this user and has retakes remaining
+    const { data: p, error: purchaseErr } = await service
+      .from("purchases")
+      .select("id, user_id, retakes_used, retakes_allowed")
+      .eq("id", purchaseId)
+      .eq("user_id", user.id)
+      .eq("purchase_type", "quiz_access")
+      .maybeSingle();
 
-  if (purchase.retakes_used >= purchase.retakes_allowed) {
-    return NextResponse.json({ error: "No retakes remaining" }, { status: 403 });
+    if (purchaseErr || (!p && !isAdmin)) {
+      return NextResponse.json({ error: "Purchase not found" }, { status: 404 });
+    }
+    
+    purchase = p;
+
+    if (purchase && purchase.retakes_used >= purchase.retakes_allowed && !isAdmin) {
+      return NextResponse.json({ error: "No retakes remaining" }, { status: 403 });
+    }
   }
 
   const { dominant, scores } = calculateScores(answers);
@@ -54,7 +69,7 @@ export async function POST(req: NextRequest) {
     .from("quiz_sessions")
     .insert({
       user_id: user.id,
-      purchase_id: purchaseId,
+      purchase_id: purchase?.id ?? null, // Can be null for admin test mode
       dominant_style_id: dominant,
       style_scores: scores,
     })
@@ -69,16 +84,19 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  // Increment retakes_used
-  const { error: updateErr } = await service
-    .from("purchases")
-    .update({ retakes_used: purchase.retakes_used + 1 })
-    .eq("id", purchaseId);
+  // Increment retakes_used only if not admin and we have a valid purchase
+  if (!isAdmin && purchase) {
+    const { error: updateErr } = await service
+      .from("purchases")
+      .update({ retakes_used: purchase.retakes_used + 1 })
+      .eq("id", purchase.id);
 
-  if (updateErr) {
-    console.error("[quiz/complete] retakes_used update failed:", updateErr);
-    // Non-fatal — session is saved, don't fail the request
+    if (updateErr) {
+      console.error("[quiz/complete] retakes_used update failed:", updateErr);
+      // Non-fatal — session is saved, don't fail the request
+    }
   }
+
 
   return NextResponse.json({ sessionId: session.id });
 }

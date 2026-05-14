@@ -9,7 +9,9 @@ type Props = {
   hasCompletePurchase: boolean;
   retakesRemaining: number;
   justPurchasedComplete: boolean;
+  isAdmin?: boolean;
 };
+
 
 const COMPLETE_FEATURES = [
   "All 8 interior design styles covered in depth",
@@ -43,7 +45,9 @@ export default function ResultsClient({
   hasCompletePurchase,
   retakesRemaining,
   justPurchasedComplete,
+  isAdmin = false,
 }: Props) {
+
   const router = useRouter();
   const [downloading, setDownloading] = useState(false);
   const [completeDownloading, setCompleteDownloading] = useState(false);
@@ -188,6 +192,37 @@ export default function ResultsClient({
           </button>
         </div>
       )}
+
+      {/* ── Retake Quiz ── */}
+      {(retakesRemaining > 0 || isAdmin) && (
+        <div className="bg-white rounded-2xl p-6 border border-ink/10 shadow-sm">
+          <p className="text-xs font-semibold tracking-widest uppercase text-stone mb-2">
+            {isAdmin ? "Admin Testing" : "Style Check"}
+          </p>
+          <h3 className="text-lg font-medium text-ink mb-1">
+            {isAdmin ? "Test the quiz again" : "Want to try again?"}
+          </h3>
+          <p className="text-sm text-ink-soft mb-5">
+            {isAdmin 
+              ? "As an admin, you can take the quiz unlimited times for testing. These sessions will be saved but won't count against any limits."
+              : `You have ${retakesRemaining} retake${retakesRemaining === 1 ? "" : "s"} left. If you feel like your results weren't quite right, you can try again.`}
+          </p>
+          <button
+            onClick={() => router.push("/quiz")}
+            className={`px-7 py-3 rounded-full font-semibold text-xs uppercase tracking-[0.22em] transition-colors duration-200 flex items-center gap-2 ${
+              isAdmin 
+                ? "bg-ink text-white hover:bg-ink-soft shadow-md" 
+                : "border border-ink/20 text-ink-soft hover:text-ink hover:border-ink"
+            }`}
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
+            </svg>
+            {isAdmin ? "Launch Admin Test" : "Retake the Quiz"}
+          </button>
+        </div>
+      )}
+
 
 
       {/* ── Complete guide purchase dialog ── */}

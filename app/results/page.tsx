@@ -153,12 +153,14 @@ export default async function ResultsPage({ searchParams }: Props) {
   // Get user's first name
   const { data: profile } = await supabase
     .from("profiles")
-    .select("full_name")
+    .select("full_name, is_admin")
     .eq("id", user.id)
     .maybeSingle();
 
   const firstName = profile?.full_name?.split(" ")[0] ?? quizSession.user_name ?? null;
+  const isAdmin = !!profile?.is_admin;
 
+  console.log(isAdmin)
   return (
     <main className="min-h-screen bg-cream">
       <header className="px-8 py-4 border-b border-ink/10 bg-cream sticky top-0 z-10">
@@ -326,11 +328,13 @@ export default async function ResultsPage({ searchParams }: Props) {
           hasCompletePurchase={!!completePurchase}
           retakesRemaining={retakesRemaining}
           justPurchasedComplete={!!complete_checkout}
+          isAdmin={isAdmin}
         />
       </article>
     </main>
   );
 }
+
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
