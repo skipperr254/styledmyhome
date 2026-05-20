@@ -5,10 +5,15 @@ import { createServiceClient } from "@/lib/supabase/server";
 import { buildPurchaseConfirmationEmail } from "@/lib/email/purchase-confirmation";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL ?? "https://styledmyhome.com";
+function getBaseUrl(req: NextRequest): string {
+  const proto = req.headers.get("x-forwarded-proto") ?? "https";
+  const host = req.headers.get("host") ?? "styledmyhome.com";
+  return `${proto}://${host}`;
+}
 const COMPLETE_GUIDE_PATH = "complete/Styled-My-Home-Style-And-Design-Guide.pdf";
 
 export async function POST(req: NextRequest) {
+  const baseUrl = getBaseUrl(req);
   const body = await req.text();
   const sig = req.headers.get("stripe-signature");
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
@@ -66,6 +71,7 @@ export async function POST(req: NextRequest) {
         userId,
         quizSessionId,
         purchaseType: purchaseType as "quiz_access" | "complete_guide",
+        baseUrl,
       });
     }
   }
@@ -79,12 +85,14 @@ async function sendPurchaseEmail({
   userId,
   quizSessionId,
   purchaseType,
+  baseUrl,
 }: {
   service: ReturnType<typeof createServiceClient>;
   customerEmail: string;
   userId: string;
   quizSessionId?: string;
   purchaseType: "quiz_access" | "complete_guide";
+  baseUrl: string;
 }) {
   try {
     let storagePath: string;
@@ -135,8 +143,8 @@ async function sendPurchaseEmail({
     }
 
     const resultsUrl = quizSessionId
-      ? `${BASE_URL}/results?session=${quizSessionId}`
-      : `${BASE_URL}/my-results`;
+      ? `${baseUrl}/results?session=${quizSessionId}`
+      : `${baseUrl}/my-results`;
 
     const { subject, html } = buildPurchaseConfirmationEmail({
       purchaseType: purchaseType === "quiz_access" ? "single" : "complete",

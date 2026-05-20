@@ -2,7 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { stripe } from "@/lib/stripe/client";
 import { createServerClient } from "@/lib/supabase/server";
 
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL!;
+function getBaseUrl(req: NextRequest): string {
+  const proto = req.headers.get("x-forwarded-proto") ?? "http";
+  const host = req.headers.get("host") ?? "localhost:3000";
+  return `${proto}://${host}`;
+}
 
 const PRICES = {
   quiz_access: 999,     // $9.99
@@ -53,15 +57,16 @@ export async function POST(req: NextRequest) {
       ? "Discover your interior design style — includes 3 quiz attempts and your personalized PDF style guide."
       : "Complete interior design guide covering all 8 design styles — 100+ page PDF.";
 
+  const baseUrl = getBaseUrl(req);
   const successUrl =
     purchaseType === "quiz_access"
-      ? `${BASE_URL}/payment-success?checkout_session={CHECKOUT_SESSION_ID}`
-      : `${BASE_URL}/results?session=${quizSessionId}&complete_checkout={CHECKOUT_SESSION_ID}`;
+      ? `${baseUrl}/payment-success?checkout_session={CHECKOUT_SESSION_ID}`
+      : `${baseUrl}/results?session=${quizSessionId}&complete_checkout={CHECKOUT_SESSION_ID}`;
 
   const cancelUrl =
     purchaseType === "quiz_access"
-      ? `${BASE_URL}/how-it-works`
-      : `${BASE_URL}/results?session=${quizSessionId}&cancelled=1`;
+      ? `${baseUrl}/how-it-works`
+      : `${baseUrl}/results?session=${quizSessionId}&cancelled=1`;
 
   const session = await stripe.checkout.sessions.create({
     ...(profile?.email ? { customer_email: profile.email } : {}),

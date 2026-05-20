@@ -68,7 +68,7 @@ export default function GetStartedPage() {
     setError("");
 
     const supabase = createClient();
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? window.location.origin;
+    const baseUrl = window.location.origin;
 
     const { error: otpError } = await supabase.auth.signInWithOtp({
       email: trimmed,
@@ -117,7 +117,7 @@ export default function GetStartedPage() {
               What&rsquo;s your first name?
             </h1>
             <p className="text-base leading-relaxed text-ink-soft mb-10">
-              We&rsquo;ll use it to personalise your style results. It&rsquo;s
+              We&rsquo;ll use it to personalize your style results. It&rsquo;s
               completely optional.
             </p>
 
@@ -213,9 +213,7 @@ export default function GetStartedPage() {
               />
             </div>
 
-            {error && (
-              <p className="text-sm text-red-600 mb-4">{error}</p>
-            )}
+            {error && <p className="text-sm text-red-600 mb-4">{error}</p>}
 
             <button
               onClick={handleEmailSubmit}
